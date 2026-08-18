@@ -17,14 +17,21 @@ export class HasPermDirective {
   private readonly container = inject(ViewContainerRef);
   private readonly perms = inject(PermissionService);
 
-  /** `"area"` (implies read) or `"area:level"`. */
-  readonly appHasPerm = input.required<string>();
+  /**
+   * `"area"` (implies read) or `"area:level"`.
+   *
+   * Not marked required: the effect can flush before the input is written, and
+   * reading a required input that early throws NG0950. An unset value simply
+   * means "no decision yet", so nothing is rendered until one arrives.
+   */
+  readonly appHasPerm = input<string>('');
 
   private rendered = false;
 
   constructor() {
     effect(() => {
-      const allowed = this.perms.canExpression(this.appHasPerm());
+      const expression = this.appHasPerm();
+      const allowed = expression ? this.perms.canExpression(expression) : false;
       if (allowed && !this.rendered) {
         this.container.createEmbeddedView(this.template);
         this.rendered = true;

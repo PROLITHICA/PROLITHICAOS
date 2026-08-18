@@ -58,8 +58,9 @@ export class ShellComponent {
       next: (page) => this.departments.set(page.results ?? []),
       error: () => this.departments.set([]),
     });
-    this.api.get<{ count?: number }>('/notifications/', { page_size: 1 }).subscribe({
-      next: (page) => this.notifCount.set(page?.count ?? 0),
+    // The badge counts what is still unread, which is what the endpoint reports.
+    this.api.get<{ unread?: number }>('/notifications/').subscribe({
+      next: (page) => this.notifCount.set(page?.unread ?? 0),
       error: () => this.notifCount.set(0),
     });
 
@@ -78,9 +79,17 @@ export class ShellComponent {
   }
 
   private readRouteData(): void {
+    // Called once on construction as well as after every navigation, so the
+    // deepest child may not have been activated — and therefore have no
+    // snapshot — yet. Take the deepest route that actually carries one.
     let child = this.route;
-    while (child.firstChild) child = child.firstChild;
-    const data = child.snapshot.data as { title?: string; crumbs?: Crumb[]; crumbCurrent?: string };
+    while (child.firstChild?.snapshot) child = child.firstChild;
+
+    const data = (child.snapshot?.data ?? {}) as {
+      title?: string;
+      crumbs?: Crumb[];
+      crumbCurrent?: string;
+    };
     this.pageTitle.set(data.title ?? '');
     this.crumbs.set(data.crumbs ?? []);
     this.crumbCurrent.set(data.crumbCurrent ?? '');

@@ -34,14 +34,28 @@
       <app-kpi-card
         [label]="kpi.label"
         [value]="kpi.value"
-        [meta]="kpi.note_right || ''"
-        [metaTag]="kpi.note_tag || ''"
-        [metaStrong]="kpi.label === 'Revenue recognised YTD'"
-        [note]="kpi.footnote || ''">
-        @if (isTrend(kpi)) {
-          <app-sparkline [values]="trend(kpi)" [baseline]="true" color="#111" />
+        [meta]="kpi.aside || ''"
+        [metaTag]="kpi.aside_tag_class || ''"
+        [metaStrong]="kpi.key === 'revenue'"
+        [note]="kpi.note || ''">
+        @if (isBars(kpi)) {
+          <svg viewBox="0 0 200 34" width="100%" height="34" class="kpi-svg" aria-hidden="true">
+            @for (bar of barsOf(kpi); track $index) {
+              <rect [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.width"
+                    [attr.height]="bar.height" [attr.fill]="bar.fill" />
+            }
+          </svg>
         } @else {
-          <app-bar-chart [bars]="bars(kpi)" [max]="34" [height]="34" />
+          <svg viewBox="0 0 200 34" width="100%" height="34" class="kpi-svg" aria-hidden="true">
+            @if (lineOf(kpi).baseline; as baseline) {
+              <polyline [attr.points]="baseline.points" fill="none"
+                        [attr.stroke]="baseline.stroke" stroke-width="1"
+                        [attr.stroke-dasharray]="baseline.dash" />
+            }
+            <polyline [attr.points]="lineOf(kpi).points" fill="none"
+                      [attr.stroke]="lineOf(kpi).stroke"
+                      [attr.stroke-width]="lineOf(kpi).stroke_width" />
+          </svg>
         }
       </app-kpi-card>
     }
@@ -50,21 +64,39 @@
   <div class="columns">
     <!-- ── left column ─────────────────────────────────────────────── -->
     <div class="stack">
-      <app-section-card
-        heading="Margin against cost, by month"
-        subheading="Company gross margin versus project cost run rate"
-        [footnote]="marginNote()">
-        <div section-actions class="legend">
-          <span class="key"><span class="swatch" style="background:#111"></span>Margin %</span>
-          <span class="key"><span class="swatch" style="background:#3d3d3d"></span>Cost R m</span>
-        </div>
-        <app-line-chart
-          [series]="marginSeries()"
-          [xLabels]="months()"
-          [nowX]="nowX()"
-          nowLabel="now"
-          [showLegend]="false" />
-      </app-section-card>
+      @if (marginChart(); as chart) {
+        <app-section-card [heading]="chart.title" [subheading]="chart.subtitle" [footnote]="chart.note">
+          <div section-actions class="legend">
+            @for (entry of chart.legend; track entry.label) {
+              <span class="key"><span class="swatch" [style.background]="entry.colour"></span>{{ entry.label }}</span>
+            }
+          </div>
+          <svg [attr.viewBox]="chart.view_box" width="100%" height="200" class="margin-chart" aria-hidden="true">
+            <g stroke="#f0f0f0" stroke-width="1">
+              @for (line of chart.axis; track line.y) {
+                <line x1="40" [attr.y1]="line.y" x2="610" [attr.y2]="line.y" />
+              }
+            </g>
+            <line x1="40" [attr.y1]="chart.baseline_y" x2="610" [attr.y2]="chart.baseline_y" stroke="#d8d8d8" />
+            <g font-size="10" fill="#9a9a9a">
+              @for (line of chart.axis; track line.y) {
+                <text x="8" [attr.y]="line.y + 4">{{ line.label }}</text>
+              }
+            </g>
+            <polygon [attr.points]="chart.margin_area" fill="#f4f4f4" />
+            <polyline [attr.points]="chart.margin_points" fill="none" stroke="#111" stroke-width="2" />
+            <polyline [attr.points]="chart.cost_points" fill="none" stroke="#3d3d3d" stroke-width="2" />
+            <line [attr.x1]="chart.now_x" y1="20" [attr.x2]="chart.now_x" [attr.y2]="chart.baseline_y"
+                  stroke="#111111" stroke-width="1" stroke-dasharray="4 3" />
+            <text [attr.x]="chart.now_x + 6" y="34" font-size="10" fill="#111111">{{ chart.now_label }}</text>
+            <g font-size="10" fill="#9a9a9a">
+              @for (month of chart.months; track month; let i = $index) {
+                <text [attr.x]="chart.month_x[i] - 10" y="188">{{ month }}</text>
+              }
+            </g>
+          </svg>
+        </app-section-card>
+      }
 
       <app-section-card heading="Immediate actions">
         <button section-actions type="button" class="btn btn-ghost" (click)="goRisks()">Risk register →</button>
@@ -134,10 +166,32 @@
     <div class="stack">
       @if (ageing(); as ageingData) {
         <div *appHasPerm="'finance:read'">
-          <app-section-card heading="Receivables ageing" [subheading]="ageingData.caption">
-            <app-donut [slices]="ageingSlices()" [total]="ageingData.total" totalNote="outstanding" />
+          <app-section-card [heading]="ageingData.title" [subheading]="ageingData.subtitle">
+            <div class="ageing">
+              <svg viewBox="0 0 124 124" width="124" height="124" class="ageing-donut" aria-hidden="true">
+                <circle cx="62" cy="62" r="44" fill="none" stroke="#f2f2f2" stroke-width="17" />
+                <g transform="rotate(-90 62 62)" fill="none" stroke-width="17">
+                  @for (bucket of ageingData.buckets; track bucket.key) {
+                    <circle cx="62" cy="62" r="44" [attr.stroke]="bucket.colour"
+                            [attr.stroke-dasharray]="bucket.dash_array"
+                            [attr.stroke-dashoffset]="bucket.dash_offset" />
+                  }
+                </g>
+                <text x="62" y="59" text-anchor="middle" font-size="18" font-weight="600" fill="#111">{{ ageingData.total }}</text>
+                <text x="62" y="75" text-anchor="middle" font-size="9" fill="#9a9a9a">{{ ageingData.total_note }}</text>
+              </svg>
+              <div class="ageing-legend">
+                @for (bucket of ageingData.buckets; track bucket.key) {
+                  <span class="ageing-row">
+                    <span class="dot" [style.background]="bucket.colour"></span>
+                    <span class="ageing-label">{{ bucket.label }}</span>
+                    <span class="ageing-value">{{ bucket.value }}</span>
+                  </span>
+                }
+              </div>
+            </div>
             <button type="button" class="btn btn-secondary btn-block" (click)="goFinance()">
-              Open finance desk
+              {{ ageingData.cta }}
             </button>
           </app-section-card>
         </div>

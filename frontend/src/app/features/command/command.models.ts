@@ -1,22 +1,53 @@
 /** The `GET /api/dashboard/command/` payload, exactly as apps/core/dashboard.py builds it. */
 
+export interface KpiBar {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+  kind: string;
+}
+
+export interface KpiBars {
+  kind: 'bars';
+  view_box: string;
+  bars: KpiBar[];
+}
+
+export interface KpiLine {
+  points: string;
+  stroke: string;
+  stroke_width: number;
+  baseline?: { points: string; stroke: string; dash: string };
+}
+
 export interface CommandKpi {
+  key: string;
   label: string;
   value: string;
-  note_right?: string;
-  note_tag?: string;
-  footnote?: string;
-  /** recorded months — the design draws these as the solid bars / the trend line */
-  series: number[];
-  /** projected months — the design draws these greyed out */
-  forecast: number[];
+  /** the figure printed to the right of the label */
+  aside?: string;
+  aside_tag_class?: string;
+  note?: string;
+  /** the design's own SVG geometry, resolved by the server */
+  series: KpiBars | KpiLine;
 }
 
 export interface MarginChart {
+  title: string;
+  subtitle: string;
+  legend: { label: string; colour: string }[];
+  view_box: string;
+  axis: { label: string; y: number }[];
+  baseline_y: number;
   months: string[];
-  margin_pct: number[];
-  cost_rm: number[];
-  now_index: number;
+  month_x: number[];
+  margin_points: string;
+  cost_points: string;
+  margin_area: string;
+  now_x: number;
+  now_label: string;
   note: string;
 }
 
@@ -44,16 +75,21 @@ export interface DeliveryRow {
 }
 
 export interface AgeingBucket {
+  key: string;
   label: string;
   value: string;
-  tone: string;
-  dash: number;
+  colour: string;
+  dash_array: string;
+  dash_offset: number;
 }
 
 export interface Ageing {
+  title: string;
+  subtitle: string;
   total: string;
-  caption: string;
+  total_note: string;
   buckets: AgeingBucket[];
+  cta: string;
 }
 
 export interface CapacityRow {
