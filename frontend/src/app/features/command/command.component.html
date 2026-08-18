@@ -1,0 +1,188 @@
+<div class="head">
+  <div>
+    <div class="greeting">{{ greeting() }}</div>
+    <h1 class="title">Command Centre</h1>
+    <div class="sub">{{ subtitle() }}</div>
+  </div>
+  <div class="head-actions">
+    <button type="button" class="btn btn-secondary" (click)="goLifecycle()">Lifecycle trace</button>
+    <button type="button" class="btn btn-primary" (click)="newOpportunity()">+ New opportunity</button>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="kpi-grid">
+    @for (slot of [1, 2, 3, 4]; track slot) { <app-skeleton height="112px" /> }
+  </div>
+  <div class="columns">
+    <div class="stack"><app-skeleton height="300px" /><app-skeleton height="220px" /></div>
+    <div class="stack"><app-skeleton height="260px" /><app-skeleton height="200px" /></div>
+  </div>
+} @else if (failed()) {
+  <div class="body">
+    <app-empty-state
+      heading="The Command Centre could not be loaded"
+      note="Company performance is outside your permissions, or the desk did not answer. Your department's own desk is always available from the sidebar."
+      actionLabel="Try again"
+      (action)="load()" />
+  </div>
+} @else {
+
+  <!-- ── KPI cards ─────────────────────────────────────────────────── -->
+  <div class="kpi-grid">
+    @for (kpi of kpis(); track kpi.label) {
+      <app-kpi-card
+        [label]="kpi.label"
+        [value]="kpi.value"
+        [meta]="kpi.note_right || ''"
+        [metaTag]="kpi.note_tag || ''"
+        [metaStrong]="kpi.label === 'Revenue recognised YTD'"
+        [note]="kpi.footnote || ''">
+        @if (isTrend(kpi)) {
+          <app-sparkline [values]="trend(kpi)" [baseline]="true" color="#111" />
+        } @else {
+          <app-bar-chart [bars]="bars(kpi)" [max]="34" [height]="34" />
+        }
+      </app-kpi-card>
+    }
+  </div>
+
+  <div class="columns">
+    <!-- ── left column ─────────────────────────────────────────────── -->
+    <div class="stack">
+      <app-section-card
+        heading="Margin against cost, by month"
+        subheading="Company gross margin versus project cost run rate"
+        [footnote]="marginNote()">
+        <div section-actions class="legend">
+          <span class="key"><span class="swatch" style="background:#111"></span>Margin %</span>
+          <span class="key"><span class="swatch" style="background:#3d3d3d"></span>Cost R m</span>
+        </div>
+        <app-line-chart
+          [series]="marginSeries()"
+          [xLabels]="months()"
+          [nowX]="nowX()"
+          nowLabel="now"
+          [showLegend]="false" />
+      </app-section-card>
+
+      <app-section-card heading="Immediate actions">
+        <button section-actions type="button" class="btn btn-ghost" (click)="goRisks()">Risk register →</button>
+        <div class="scroll-x">
+          <table class="table" style="min-width:640px">
+            <tbody>
+              @for (item of attention(); track item.title) {
+                <tr>
+                  <td style="width:44%">
+                    <div class="row-title">{{ item.title }}</div>
+                    <div class="row-meta">{{ item.meta }}</div>
+                  </td>
+                  <td><app-tag [text]="item.state" [tagClass]="item.tag_class" /></td>
+                  <td class="row-when">{{ item.when }}</td>
+                  <td style="text-align:right">
+                    <button type="button" class="btn btn-secondary btn-small" (click)="openAttention(item)">
+                      {{ item.action }}
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td class="table-empty">Nothing is waiting on a decision today.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </app-section-card>
+
+      <app-section-card
+        heading="Active delivery"
+        subheading="Completion against budget consumed. Click a project to open it.">
+        <div class="scroll-x">
+          <table class="table" style="min-width:640px">
+            <thead>
+              <tr>
+                <th>Project</th><th>Client</th><th>Manager</th>
+                <th style="width:150px">Progress vs budget</th>
+                <th style="text-align:right">Margin</th><th>Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of projects(); track row.name) {
+                <tr style="cursor:pointer" (click)="openProject(row)">
+                  <td style="font-weight:600">{{ row.name }}</td>
+                  <td class="muted">{{ row.client }}</td>
+                  <td class="muted">{{ row.pm }}</td>
+                  <td>
+                    <app-progress-bar
+                      [complete]="row.complete"
+                      [budget]="row.budget"
+                      [budgetColor]="budgetColour(row)"
+                      [caption]="progressCaption(row)" />
+                  </td>
+                  <td style="text-align:right">{{ row.margin }}</td>
+                  <td><app-tag [text]="row.health" [tagClass]="row.tag_class" /></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="table-empty">No projects are assigned to you.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </app-section-card>
+    </div>
+
+    <!-- ── right column ────────────────────────────────────────────── -->
+    <div class="stack">
+      @if (ageing(); as ageingData) {
+        <div *appHasPerm="'finance:read'">
+          <app-section-card heading="Receivables ageing" [subheading]="ageingData.caption">
+            <app-donut [slices]="ageingSlices()" [total]="ageingData.total" totalNote="outstanding" />
+            <button type="button" class="btn btn-secondary btn-block" (click)="goFinance()">
+              Open finance desk
+            </button>
+          </app-section-card>
+        </div>
+      }
+
+      <app-section-card heading="Delivery capacity" subheading="Utilisation this week · 14 people">
+        <div class="capacity">
+          @for (row of capacity(); track row.team) {
+            <div>
+              <div class="cap-top">
+                <span>{{ row.team }}</span>
+                <span class="cap-pct" [style.color]="capacityColour(row)">{{ row.pct }}</span>
+              </div>
+              <span class="cap-track">
+                <span class="cap-fill" [style.width]="row.width" [style.background]="capacityColour(row)"></span>
+              </span>
+              <div class="cap-note">{{ row.note }}</div>
+            </div>
+          } @empty {
+            <div class="cap-note">Capacity is not published to your role.</div>
+          }
+        </div>
+      </app-section-card>
+
+      @if (decisions().length) {
+        <app-section-card
+          heading="Decisions waiting on you"
+          subheading="Nothing moves without executive authority">
+          <div class="decisions">
+            @for (decision of decisions(); track decision.action) {
+              <div class="decision">
+                <div>
+                  <div class="dec-text">{{ decision.text }}</div>
+                  <div class="dec-meta">{{ decision.meta }}</div>
+                </div>
+                <button type="button" class="btn btn-secondary btn-small"
+                        [disabled]="busy() === decision.action" (click)="decide(decision)">
+                  @if (busy() === decision.action) { <span class="spin spin-dark"></span> }
+                  {{ decision.cta }}
+                </button>
+              </div>
+            }
+          </div>
+        </app-section-card>
+      }
+    </div>
+  </div>
+}

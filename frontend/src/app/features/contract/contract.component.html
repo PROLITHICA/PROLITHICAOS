@@ -1,0 +1,75 @@
+@if (loading()) {
+  <div class="skel-head">
+    <app-skeleton width="220px" height="12px" />
+    <app-skeleton width="440px" height="30px" />
+    <app-skeleton width="380px" height="13px" />
+  </div>
+  <div class="split">
+    <app-skeleton width="100%" height="320px" />
+    <app-skeleton width="100%" height="320px" />
+  </div>
+} @else {
+  @if (failure(); as fail) {
+  <app-empty-state [heading]="fail.heading" [note]="fail.note" />
+  } @else {
+    @if (contract(); as record) {
+  <div class="head">
+    <div>
+      <div class="kicker">{{ record.kicker }}</div>
+      <h1 class="title">{{ record.title || record.name }}</h1>
+      <div class="sub">{{ record.subtitle }}</div>
+    </div>
+    <div class="head-actions">
+      @if (canAmend()) {
+        <button type="button" class="btn btn-secondary nowrap" (click)="amendOpen.set(true)">Amend</button>
+      }
+      <a class="btn btn-secondary nowrap" routerLink="/documents">Documents</a>
+      <a class="btn btn-primary nowrap" routerLink="/records/projects">Open project</a>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="panel">
+      <h4 class="panel-title tight">Terms</h4>
+      @for (term of record.terms; track $index) {
+        <div class="term">
+          <span class="term-label">{{ term.label }}</span><span>{{ term.value }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="col">
+      <div class="panel">
+        <h4 class="panel-title">Payment schedule</h4>
+        <div class="panel-sub">Each line is a billable event owned by a milestone</div>
+        <div class="table-wrap">
+          <app-data-table
+            [cols]="scheduleCols" [rows]="scheduleRows()" [minWidth]="520" [clickable]="false"
+            emptyText="No payments are scheduled on this contract." />
+        </div>
+      </div>
+      <div class="panel">
+        <h4 class="panel-title tight">Amendments and obligations</h4>
+        @for (amendment of record.amendments; track $index) {
+          <div class="amend">
+            <div class="amend-top">
+              <span class="amend-name">{{ amendment.name }}</span>
+              <span class="tag" [class]="'tag ' + amendment.tag_class">{{ amendment.state }}</span>
+            </div>
+            <div class="amend-meta">{{ amendment.meta }}</div>
+          </div>
+        } @empty {
+          <div class="none">No amendments or standing obligations on this contract.</div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <app-modal
+    [open]="amendOpen()" title="Amend contract"
+    [subtitle]="'Write an approved change back onto ' + record.ref + '. The contract value, payment schedule and project budget follow.'"
+    [fields]="amendFields" submitLabel="Amend contract" [busy]="amending()"
+    (close)="amendOpen.set(false)" (submit)="submitAmend($event)" />
+    }
+  }
+}

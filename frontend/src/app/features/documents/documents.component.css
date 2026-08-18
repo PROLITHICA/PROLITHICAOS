@@ -1,0 +1,93 @@
+:host { display: block; }
+
+.hidden-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.title { font-size: 28px; margin: 0 0 4px; }
+.sub { font-size: 12.5px; color: #8a8a8a; }
+.upload-btn { font-size: 12.5px; padding: 7px 14px; flex: none; white-space: nowrap; }
+
+.layout {
+  display: grid; grid-template-columns: 288px minmax(0, 1fr);
+  gap: 14px; margin-top: 20px; align-items: start;
+}
+.single { margin-top: 20px; }
+
+.rail { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 16px; }
+.kicker { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; }
+.kicker.tight { margin-bottom: 7px; }
+.rail-list { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
+.rail-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; text-align: left; background: transparent; border: 0;
+  border-left: 3px solid transparent; border-radius: 5px; padding: 8px 10px;
+  font: inherit; cursor: pointer;
+}
+.rail-item:hover { background: #f4f4f4; }
+.rail-item.active { background: #f4f4f4; border-left-color: #111; }
+.rail-body { min-width: 0; }
+.rail-name { display: block; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rail-path { display: block; font-size: 10.5px; color: #9a9a9a; }
+.rail-count { font-size: 10.5px; color: #9a9a9a; }
+
+.new-folder { border-top: 1px dotted #dcdcdc; margin-top: 14px; padding-top: 12px; }
+.folder-input { background: #fafafa; border-color: #b5b5b5; border-radius: 999px; font-family: inherit; }
+.new-folder-actions { display: flex; gap: 8px; margin-top: 8px; }
+.new-folder-actions .btn { font-size: 12.5px; padding: 6px 12px; }
+.grow { flex: 1; }
+.rail-note { font-size: 10.5px; color: #9a9a9a; margin-top: 7px; }
+
+.panel { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 18px; }
+.panel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.panel-path { font-size: 11px; color: #9a9a9a; }
+.panel-name { margin: 4px 0 2px; font-size: 20px; }
+.panel-meta { font-size: 11.5px; color: #8a8a8a; }
+.panel-actions { display: flex; gap: 9px; flex: none; }
+.small { border-color: #b5b5b5; font-size: 12.5px; padding: 6px 12px; white-space: nowrap; }
+
+.files { margin-top: 10px; }
+.files-table { min-width: 640px; }
+.kind-col { width: 34px; }
+.kind {
+  font-size: 8.5px; font-weight: 600; color: #666;
+  border: 1px dotted #b5b5b5; border-radius: 5px; padding: 2px 3px;
+}
+.files-table .name { font-weight: 600; }
+.files-table .dim { color: #6b6b6b; }
+.right { text-align: right; }
+.files-skel { margin-top: 12px; }
+
+.folder-empty {
+  border: 1px dotted #b5b5b5; border-radius: 16px; padding: 38px;
+  text-align: center; margin-top: 16px;
+}
+.folder-empty-title { font-size: 14px; font-weight: 600; }
+.folder-empty-note { font-size: 12px; color: #8a8a8a; margin-top: 4px; }
+.folder-empty-btn { font-size: 12.5px; padding: 6px 14px; margin-top: 14px; }
+
+.foot {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px; margin-top: 18px; border-top: 1px dotted #dcdcdc; padding-top: 16px;
+}
+.foot-kicker { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #9a9a9a; }
+.foot-value {
+  font-family: 'Roboto', sans-serif; font-size: 22px; font-weight: 600;
+  margin-top: 5px; white-space: nowrap;
+}
+.bar {
+  display: block; height: 5px; background: #f0f0f0; border-radius: 5px;
+  margin-top: 7px; overflow: hidden;
+}
+.bar-fill { display: block; height: 5px; background: #111; }
+.foot-note { font-size: 10.5px; color: #9a9a9a; margin-top: 4px; }
+.foot-body { font-size: 12.5px; margin-top: 6px; }
+.foot-activity { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.act { font-size: 11.5px; color: #4a4a4a; }
+.act-when { color: #9a9a9a; }
+
+.none { font-size: 12px; color: #8a8a8a; padding: 8px 2px; }
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .foot { grid-template-columns: minmax(0, 1fr); }
+}

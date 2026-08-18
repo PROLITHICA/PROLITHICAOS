@@ -1,0 +1,87 @@
+@if (loading()) {
+  <div class="skel-head">
+    <app-skeleton width="240px" height="12px" />
+    <app-skeleton width="420px" height="30px" />
+    <app-skeleton width="380px" height="13px" />
+  </div>
+  <div class="flow">
+    @for (i of [1, 2, 3, 4, 5]; track i) { <app-skeleton width="100%" height="56px" /> }
+  </div>
+  <div class="split">
+    <app-skeleton width="100%" height="320px" />
+    <app-skeleton width="100%" height="320px" />
+  </div>
+} @else {
+  @if (failure(); as fail) {
+  <app-empty-state [heading]="fail.heading" [note]="fail.note" />
+  } @else {
+    @if (change(); as record) {
+  <div class="head">
+    <div>
+      <div class="kicker">{{ record.kicker }}</div>
+      <h1 class="title">{{ record.title || record.name }}</h1>
+      <div class="sub">{{ record.subtitle }}</div>
+    </div>
+    <div class="head-actions">
+      @if (canDecide() && !decided()) {
+        <button type="button" class="btn btn-secondary nowrap" [disabled]="!!busy()" (click)="rejectOpen.set(true)">Reject</button>
+        <button type="button" class="btn btn-secondary nowrap" [disabled]="!!busy()" (click)="approve()">
+          @if (busy() === 'approve') { <span class="spin spin-dark"></span> }
+          Approve
+        </button>
+      }
+      @if (canPrice()) {
+        <button type="button" class="btn btn-primary nowrap" [disabled]="!!busy() || record.priced" (click)="price()">
+          @if (busy() === 'price') { <span class="spin"></span> }
+          {{ record.price_cta_label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="flow">
+    @for (step of record.flow; track $index) {
+      <div class="step" [style.border-color]="step.border" [style.background]="step.bg">
+        <div class="step-name" [style.font-weight]="step.weight">{{ step.name }}</div>
+        <div class="step-meta">{{ step.meta }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="split">
+    <div class="panel">
+      <h4 class="panel-title tight">The request, and what it costs</h4>
+      @for (field of record.fields_block; track $index) {
+        <div class="field">
+          <div class="field-label">{{ field.label }}</div>
+          <div class="field-value">{{ field.value }}</div>
+        </div>
+      }
+    </div>
+    <div class="panel">
+      <h4 class="panel-title">What approval will write back</h4>
+      <div class="panel-sub">One approval, five records updated</div>
+      <div class="writeback">
+        @for (line of record.writeback; track $index) {
+          <div class="wb">
+            <span class="wb-dot"></span>
+            <div>
+              <div class="wb-text">{{ line.text }}</div>
+              <div class="wb-record">{{ line.record }}</div>
+            </div>
+          </div>
+        } @empty {
+          <div class="none">Nothing is wired to this change request yet.</div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <app-modal
+    [open]="rejectOpen()" title="Reject change request"
+    [subtitle]="'The reason stays on ' + record.ref + ' and the scope baseline is left unchanged.'"
+    [fields]="rejectFields" submitLabel="Reject" [busy]="busy() === 'reject'"
+    (close)="rejectOpen.set(false)" (submit)="submitReject($event)" />
+    }
+  }
+}

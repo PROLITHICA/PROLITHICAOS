@@ -1,0 +1,147 @@
+@if (status() === 'forbidden') {
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
+  <div class="gap">
+    <app-empty-state heading="Your role cannot see the finance desk" [note]="errorNote()" />
+  </div>
+} @else if (status() === 'error') {
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
+  <div class="gap">
+    <app-empty-state
+      heading="The finance desk could not be loaded"
+      [note]="errorNote()"
+      actionLabel="Try again"
+      (action)="load()" />
+  </div>
+} @else if (status() === 'loading') {
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
+  <div class="figures">
+    @for (slot of [0, 1, 2, 3]; track slot) { <app-skeleton height="118px" /> }
+  </div>
+  <div class="split">
+    <app-skeleton height="300px" />
+    <app-skeleton height="300px" />
+  </div>
+  <div class="gap"><app-skeleton height="240px" /></div>
+} @else {
+
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
+
+  <div class="figures">
+    @for (figure of figures(); track figure.label) {
+      <div class="figure">
+        <div class="figure-label">{{ figure.label }}</div>
+        <div class="figure-value" [style.color]="figure.col">{{ figure.value }}</div>
+        <span class="track">
+          <span class="fill" [style.width]="figure.w" [style.background]="figure.col"></span>
+        </span>
+        <div class="figure-note">{{ figure.note }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="split">
+    @if (chart(); as chart) {
+      <app-card [padding]="18" [heading]="chart.title" [subheading]="chart.subtitle">
+        <svg [attr.viewBox]="chart.view_box" width="100%" height="190" class="chart" aria-hidden="true">
+          <g stroke="#f0f0f0">
+            @for (line of chart.axis; track line.y) {
+              <line x1="34" [attr.y1]="line.y" x2="510" [attr.y2]="line.y" />
+            }
+          </g>
+          <line x1="34" [attr.y1]="chart.baseline_y" x2="510" [attr.y2]="chart.baseline_y" stroke="#d8d8d8" />
+          <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+            @for (line of chart.axis; track line.y) {
+              <text x="6" [attr.y]="line.y + 4">{{ line.label }}</text>
+            }
+          </g>
+          <g>
+            @for (bar of chart.invoiced; track $index) {
+              <rect [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.width"
+                    [attr.height]="bar.height" [attr.fill]="bar.fill || '#111'" />
+            }
+            @for (bar of chart.received; track $index) {
+              <rect [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.width"
+                    [attr.height]="bar.height" [attr.fill]="bar.fill || '#d6d6d6'" />
+            }
+          </g>
+          <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+            @for (month of months(); track month.label) {
+              <text [attr.x]="month.x" y="176">{{ month.label }}</text>
+            }
+          </g>
+        </svg>
+        <div class="legend">
+          @for (item of chart.legend; track item.label) {
+            <span class="legend-item">
+              <span class="swatch" [style.background]="item.colour"></span>{{ item.label }}
+            </span>
+          }
+        </div>
+      </app-card>
+    }
+
+    <app-card [padding]="18"
+              [heading]="desk()?.billable?.title ?? 'Ready to bill'"
+              [subheading]="desk()?.billable?.subtitle ?? 'Closed and accepted by the client'">
+      <div class="billable">
+        @for (item of billable(); track item.id) {
+          <div class="billable-item">
+            <div class="billable-head">
+              <div class="billable-name">{{ item.name }}</div>
+              <div class="billable-value">{{ item.value_display }}</div>
+            </div>
+            <div class="billable-meta">{{ item.meta }}</div>
+            <button type="button" [class]="'btn act ' + item.btn_class"
+                    [disabled]="billableDisabled(item)"
+                    (click)="generateInvoice(item)">
+              @if (busy() === item.id) { <span class="spin"></span> }
+              {{ billableLabel(item) }}
+            </button>
+          </div>
+        } @empty {
+          <div class="none">Nothing is waiting to be billed.</div>
+        }
+      </div>
+    </app-card>
+  </div>
+
+  <div class="gap">
+    <app-card [padding]="18"
+              [heading]="desk()?.invoices?.title ?? 'Invoices'"
+              [subheading]="desk()?.invoices?.subtitle ?? ''">
+      <div class="table-wrap">
+        <app-data-table
+          [cols]="invoiceCols()"
+          [rows]="invoiceRows()"
+          [clickable]="false"
+          emptyText="No invoices have been raised yet." />
+      </div>
+    </app-card>
+  </div>
+
+  <div class="gap">
+    <app-card [padding]="18"
+              [heading]="desk()?.expenses?.title ?? 'Expenses awaiting approval'"
+              [subheading]="desk()?.expenses?.subtitle ?? ''">
+      <div class="expenses">
+        @for (item of expenses(); track item.id) {
+          <div class="expense">
+            <div>
+              <div class="expense-what">{{ item.what }}</div>
+              <div class="expense-meta">{{ item.meta }}</div>
+            </div>
+            <div class="expense-value">{{ item.value_display }}</div>
+            <button type="button" [class]="'btn act ' + item.btn_class"
+                    [disabled]="expenseDisabled(item)"
+                    (click)="approveExpense(item)">
+              @if (busy() === item.id) { <span class="spin"></span> }
+              {{ expenseLabel(item) }}
+            </button>
+          </div>
+        } @empty {
+          <div class="none">No expenses are awaiting approval.</div>
+        }
+      </div>
+    </app-card>
+  </div>
+}

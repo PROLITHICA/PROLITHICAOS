@@ -1,0 +1,79 @@
+@if (loading()) {
+  <div class="stack">
+    <app-skeleton width="300px" height="28px" />
+    <app-skeleton width="520px" height="12px" />
+    <app-skeleton height="76px" />
+    <div class="skel-row"><app-skeleton height="300px" /><app-skeleton height="300px" /></div>
+  </div>
+} @else if (error() || !stages().length) {
+  <app-empty-state
+    heading="No lifecycle trace to walk"
+    [note]="error() || 'This organisation has no recorded chain from first conversation to cash received.'" />
+} @else {
+  @if (screen(); as s) {
+    <h1 style="font-size:28px;margin:0 0 4px">{{ s.title }}</h1>
+    <div style="font-size:12.5px;color:#8a8a8a">{{ s.subtitle }}</div>
+
+    <!-- ── the six-step rail ────────────────────────────────────────── -->
+    <div class="rail">
+      @for (step of rail(); track step.step) {
+        <button type="button" class="rail-step" (click)="select(step.index)"
+                [style.background]="step.bg" [style.border-top-color]="step.rule">
+          <span style="display:block;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#9a9a9a">Step {{ step.step }}</span>
+          <span style="display:block;font-family:'Roboto',sans-serif;font-weight:600;font-size:14.5px;margin-top:3px" [style.color]="step.col">{{ step.label }}</span>
+          <span style="display:block;font-size:10.5px;color:#8a8a8a">{{ step.ref }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- ── the stage detail ─────────────────────────────────────────── -->
+    @if (stage(); as st) {
+      <div class="detail-row">
+        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+          <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#9a9a9a">{{ st.kicker }}</div>
+          <h3 style="margin:6px 0 6px;font-size:20px">{{ st.title }}</h3>
+          <p style="font-size:13px;color:#4a4a4a;max-width:60ch">{{ st.body }}</p>
+          <div style="display:flex;flex-direction:column;gap:0;margin-top:10px">
+            @for (f of st.fields; track $index) {
+              <div class="field-row">
+                <span style="color:#8a8a8a">{{ f.label }}</span>
+                <span>{{ f.value }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+            <h4 style="margin:0 0 10px;font-size:15px">Inherited into this stage</h4>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              @for (i of inherits(); track $index) {
+                <div style="display:grid;grid-template-columns:16px minmax(0,1fr);gap:10px">
+                  <span style="width:8px;height:8px;margin-top:6px;background:#3d3d3d;border-radius:2px"></span>
+                  <div>
+                    <div style="font-size:12.5px">{{ i.text }}</div>
+                    <div style="font-size:10.5px;color:#9a9a9a">from {{ i.from }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+            <h4 style="margin:0 0 10px;font-size:15px">Activity</h4>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              @for (a of activity(); track $index) {
+                <div style="display:grid;grid-template-columns:74px minmax(0,1fr);gap:12px;font-size:12.5px">
+                  <span style="color:#9a9a9a">{{ a.when }}</span>
+                  <span>{{ a.what }}</span>
+                </div>
+              } @empty {
+                <div style="font-size:12.5px;color:#8a8a8a">Nothing has happened on this stage yet.</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+}

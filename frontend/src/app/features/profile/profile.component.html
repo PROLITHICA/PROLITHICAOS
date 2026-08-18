@@ -1,0 +1,243 @@
+@if (loading()) {
+  <div class="skel-stack">
+    <app-skeleton width="240px" height="26px" />
+    <app-skeleton width="380px" height="12px" />
+    <app-skeleton width="100%" height="46px" />
+    <app-skeleton width="760px" height="280px" />
+  </div>
+} @else if (loadError()) {
+  <app-empty-state
+    heading="Your profile could not be loaded"
+    note="The account service did not answer. Nothing was changed."
+    actionLabel="Try again"
+    (action)="load()" />
+} @else {
+
+  <div class="ident fade">
+    <span class="avatar">{{ initials() }}</span>
+    <div>
+      <h1>{{ profile()?.display_name }}</h1>
+      <div class="ident-meta">{{ profile()?.job_title }} · {{ roleLabel() }} · {{ email() }}</div>
+    </div>
+  </div>
+
+  <div class="tab-rail">
+    @for (t of tabs; track t.k) {
+      <button type="button" class="tab"
+              [style.background]="tab() === t.k ? '#111' : '#fff'"
+              [style.color]="tab() === t.k ? '#fff' : '#333'"
+              [style.border-color]="tab() === t.k ? '#111' : '#b5b5b5'"
+              [attr.aria-pressed]="tab() === t.k"
+              (click)="selectTab(t.k)">{{ t.label }}</button>
+    }
+  </div>
+  <div class="tab-note">{{ activeNote() }}</div>
+
+  <div class="panel">
+
+    <!-- ── Account ────────────────────────────────────────────────── -->
+    @if (tab() === 'account') {
+      <h4>Display name and title</h4>
+      <div class="grid-240">
+        <app-field label="Display name" name="display_name" surface="#fafafa"
+                   [value]="displayName()" (valueChange)="displayName.set($event)" />
+        <app-field label="Job title" name="job_title" surface="#fafafa"
+                   [value]="jobTitle()" (valueChange)="jobTitle.set($event)" />
+        <app-field label="Work email" name="email" surface="#f2f2f2" [value]="email()" />
+        <app-field label="Department" name="department" surface="#f2f2f2" [value]="roleLabel()" />
+      </div>
+      <div class="note" style="margin-top:8px">Email and department are set by administration. Your name and title appear on every assignment, approval, progress update and document you touch.</div>
+
+      <div class="preview">
+        <div class="preview-kicker">How you appear to colleagues</div>
+        <div class="preview-body">
+          <span class="preview-avatar">{{ previewInitials() }}</span>
+          <span>
+            <span class="preview-name">{{ displayName() || '—' }}</span>
+            <span class="preview-title" style="display:block">{{ jobTitle() || '—' }} · {{ roleLabel() }}</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="row-actions">
+        <button type="button" class="btn btn-primary" [disabled]="acctBusy()" (click)="saveAccount()">
+          @if (acctBusy()) { <span class="spin"></span> }
+          Save changes
+        </button>
+        <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5"
+                (click)="revertAccount()">Revert to directory</button>
+      </div>
+    }
+
+    <!-- ── Password ───────────────────────────────────────────────── -->
+    @if (tab() === 'password') {
+      <h4 style="margin:0 0 4px">Set a new password</h4>
+      <div class="note" style="margin-bottom:14px">Last changed {{ pwChanged() }} · minimum twelve characters · changing it signs out your other devices</div>
+      <div class="grid-220">
+        <app-field label="Current password" name="pw_current" kind="password" surface="#fafafa"
+                   placeholder="Current password" autocomplete="current-password"
+                   [value]="pwCurrent()" (valueChange)="pwCurrent.set($event)" />
+        <app-field label="New password" name="pw_next" kind="password" surface="#fafafa"
+                   placeholder="At least 12 characters" autocomplete="new-password"
+                   [value]="pwNext()" (valueChange)="pwNext.set($event)" />
+        <app-field label="Confirm new password" name="pw_confirm" kind="password" surface="#fafafa"
+                   placeholder="Repeat it" autocomplete="new-password"
+                   [error]="pwConfirm() && pwNext() !== pwConfirm() ? 'The two new passwords do not match.' : ''"
+                   [value]="pwConfirm()" (valueChange)="pwConfirm.set($event)" />
+      </div>
+      <div class="strength">
+        <div class="strength-head"><span>Strength</span><span>{{ pwStrength() }}</span></div>
+        <span class="strength-track"><span class="strength-fill" [style.width]="pwStrengthWidth()"></span></span>
+      </div>
+      @if (pwError()) {
+        <div class="note" style="color:#111;margin-top:10px">{{ pwError() }}</div>
+      }
+      <div class="row-actions" style="margin-top:18px">
+        <button type="button" class="btn btn-primary" [disabled]="pwBusy()" (click)="savePassword()">
+          @if (pwBusy()) { <span class="spin"></span> }
+          Change password
+        </button>
+        <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5"
+                [disabled]="resetBusy()" (click)="sendReset()">
+          @if (resetBusy()) { <span class="spin spin-dark"></span> }
+          Email me a reset link
+        </button>
+      </div>
+    }
+
+    <!-- ── Security & sessions ────────────────────────────────────── -->
+    @if (tab() === 'security') {
+      <h4>Multi-factor authentication</h4>
+      <div style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px dotted #dcdcdc">
+        <button type="button" class="box" aria-label="toggle mfa"
+                [style.background]="mfaOn() ? '#111' : 'transparent'"
+                (click)="toggleMfa()"></button>
+        <div>
+          <div class="row-title">Require a second factor at sign-in</div>
+          <div class="row-meta">{{ mfaLabel() }}</div>
+        </div>
+        <span class="row-meta nowrap">Mandatory for finance</span>
+      </div>
+
+      <h4 style="margin:18px 0 6px">Signed-in devices</h4>
+      @if (sessionsLoading()) {
+        <div class="skel-stack">
+          <app-skeleton width="100%" height="40px" />
+          <app-skeleton width="100%" height="40px" />
+          <app-skeleton width="100%" height="40px" />
+        </div>
+      } @else if (sessionsError()) {
+        <app-empty-state heading="Devices could not be loaded"
+                         note="The session list did not answer."
+                         actionLabel="Try again" (action)="retryTab()" />
+      } @else {
+        @for (s of sessions(); track s.id) {
+          <div class="session-row">
+            <div>
+              <div class="row-title">{{ s.device }}</div>
+              <div class="row-meta">{{ sessionMeta(s) }}</div>
+            </div>
+            <button type="button" class="btn session-cta"
+                    [class.btn-ghost]="s.current" [class.btn-secondary]="!s.current"
+                    (click)="endSession(s)">{{ s.current ? 'Current session' : 'End session' }}</button>
+          </div>
+        } @empty {
+          <app-empty-state heading="No other devices"
+                           note="This is the only device signed in to your account." />
+        }
+        <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5;margin-top:16px"
+                (click)="signOutOthers()">Sign out of all other devices</button>
+      }
+    }
+
+    <!-- ── Notifications ──────────────────────────────────────────── -->
+    @if (tab() === 'notifications') {
+      <h4 style="margin:0 0 4px">What reaches you</h4>
+      <div class="note" style="margin-bottom:8px">The system sends events, not noise. Critical items cannot be muted.</div>
+      @if (prefsLoading()) {
+        <div class="skel-stack">
+          <app-skeleton width="100%" height="40px" />
+          <app-skeleton width="100%" height="40px" />
+          <app-skeleton width="100%" height="40px" />
+        </div>
+      } @else if (prefsError()) {
+        <app-empty-state heading="Preferences could not be loaded"
+                         note="The preference service did not answer."
+                         actionLabel="Try again" (action)="retryTab()" />
+      } @else {
+        @for (p of prefRows(); track p.k) {
+          <div class="toggle-row">
+            <button type="button" class="box" aria-label="toggle"
+                    [style.background]="p.on ? '#111' : 'transparent'"
+                    (click)="togglePref(p)"></button>
+            <div>
+              <div class="row-title">{{ p.label }}</div>
+              <div class="row-meta">{{ p.note }}</div>
+            </div>
+            <span class="tag" [class]="'tag ' + prefTagClass(p)">{{ p.on ? 'On' : 'Off' }}</span>
+          </div>
+        }
+      }
+    }
+
+    <!-- ── My permissions ─────────────────────────────────────────── -->
+    @if (tab() === 'permissions') {
+      <h4 style="margin:0 0 4px">What you can see and do</h4>
+      <div class="note" style="margin-bottom:8px">{{ permNote() }}</div>
+      @for (p of permissionRows(); track p.area) {
+        <div class="perm-row">
+          <div class="row-title">{{ p.area }}</div>
+          <span class="tag" [class]="'tag ' + permTagClass(p.level)">{{ p.level }}</span>
+        </div>
+      } @empty {
+        <app-empty-state heading="No permissions recorded"
+                         note="Your account has no role attached. Administration can grant one." />
+      }
+    }
+
+    <!-- ── Delegation ─────────────────────────────────────────────── -->
+    @if (tab() === 'delegation') {
+      <h4 style="margin:0 0 4px">Delegate approvals</h4>
+      <div class="note" style="margin-bottom:12px">While you are away, approvals route to the person you name. The audit trail records that they acted on your behalf.</div>
+      @if (delegLoading()) {
+        <div class="skel-stack">
+          <app-skeleton width="100%" height="30px" />
+          <app-skeleton width="300px" height="46px" />
+        </div>
+      } @else if (delegError()) {
+        <app-empty-state heading="Delegation could not be loaded"
+                         note="The delegation service did not answer."
+                         actionLabel="Try again" (action)="retryTab()" />
+      } @else {
+        <div class="pills">
+          @for (o of colleagues(); track o.id) {
+            <button type="button" class="pill"
+                    [style.background]="delegateId() === o.id ? '#111' : '#fff'"
+                    [style.color]="delegateId() === o.id ? '#fff' : '#333'"
+                    [style.border-color]="delegateId() === o.id ? '#111' : '#b5b5b5'"
+                    (click)="pickDelegate(o)">{{ o.display_name }}</button>
+          } @empty {
+            <div class="note">There is nobody else in the directory to delegate to.</div>
+          }
+        </div>
+        <div style="max-width:300px">
+          <app-field label="Delegating from" name="deleg_from" kind="date" surface="#fafafa"
+                     [value]="delegFrom()" (valueChange)="delegFrom.set($event)" />
+        </div>
+        <div style="max-width:300px;margin-top:14px">
+          <app-field label="Out of office until" name="deleg_until" kind="date" surface="#fafafa"
+                     [value]="delegUntil()" (valueChange)="delegUntil.set($event)" />
+        </div>
+        <div class="row-actions">
+          <button type="button" class="btn btn-primary" [disabled]="delegBusy()" (click)="saveDelegation()">
+            @if (delegBusy()) { <span class="spin"></span> }
+            Save delegation
+          </button>
+          <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5"
+                  [disabled]="delegBusy()" (click)="clearDelegation()">Clear delegation</button>
+        </div>
+      }
+    }
+
+  </div>
+}

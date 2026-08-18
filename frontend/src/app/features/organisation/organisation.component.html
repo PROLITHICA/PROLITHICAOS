@@ -1,0 +1,96 @@
+@if (loading()) {
+  <div class="skel-head">
+    <app-skeleton width="200px" height="12px" />
+    <app-skeleton width="420px" height="30px" />
+    <app-skeleton width="320px" height="13px" />
+  </div>
+  <div class="figures">
+    @for (i of [1, 2, 3, 4]; track i) { <app-skeleton width="100%" height="96px" /> }
+  </div>
+  <div class="split">
+    <app-skeleton width="100%" height="280px" />
+    <app-skeleton width="100%" height="280px" />
+  </div>
+} @else {
+  @if (failure(); as fail) {
+  <app-empty-state [heading]="fail.heading" [note]="fail.note" />
+  } @else {
+    @if (org(); as record) {
+  <div class="head">
+    <div>
+      <div class="kicker">{{ record.kicker }}</div>
+      <h1 class="title">{{ record.name }}</h1>
+      <div class="sub">{{ record.subtitle }}</div>
+    </div>
+    <div class="head-actions">
+      <a class="btn btn-secondary nowrap" [routerLink]="['/lifecycle', ref()]">Lifecycle trace</a>
+      <button type="button" class="btn btn-primary nowrap" (click)="newOpportunity()">+ New opportunity</button>
+    </div>
+  </div>
+
+  <div class="figures">
+    @for (figure of record.figures; track figure.label) {
+      <div class="figure">
+        <div class="figure-label">{{ figure.label }}</div>
+        <div class="figure-value" [style.color]="figure.col || '#111'">{{ figure.value }}</div>
+        <div class="figure-note">{{ figure.note }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="split">
+    <div class="col">
+      @for (group of record.related; track group.heading) {
+        <div class="panel">
+          <div class="panel-head">
+            <h4 class="panel-title">{{ group.heading }}</h4>
+            <span class="panel-meta">{{ group.meta }}</span>
+          </div>
+          <div class="rows">
+            @for (row of group.rows; track $index) {
+              <div class="rel-row">
+                <div>
+                  <div class="rel-name">{{ row.name }}</div>
+                  <div class="rel-meta">{{ row.meta }}</div>
+                </div>
+                <div class="rel-value">{{ row.value }}</div>
+                <span class="tag" [class]="'tag ' + row.tagClass">{{ row.state }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      } @empty {
+        <app-empty-state
+          heading="Nothing is attached to this organisation yet"
+          note="Opportunities, contracts and invoices appear here as soon as the first one is raised." />
+      }
+    </div>
+
+    <div class="col">
+      <div class="panel">
+        <h4 class="panel-title tight">Contacts</h4>
+        @for (contact of record.contacts; track $index) {
+          <div class="contact">
+            <div class="contact-name">{{ contact.name }}</div>
+            <div class="contact-meta">{{ contact.role_label }} · {{ contact.note }}</div>
+          </div>
+        } @empty {
+          <div class="none">No contacts recorded.</div>
+        }
+      </div>
+      <div class="panel">
+        <h4 class="panel-title tight">Relationship history</h4>
+        @for (entry of record.activity; track $index) {
+          <div class="hist">
+            <span class="hist-when">{{ entry.when }}</span>
+            <span>{{ entry.what }}</span>
+          </div>
+        } @empty {
+          <div class="none">No history recorded yet.</div>
+        }
+      </div>
+    </div>
+  </div>
+    }
+  }
+}

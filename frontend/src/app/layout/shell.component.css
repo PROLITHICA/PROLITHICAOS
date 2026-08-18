@@ -1,0 +1,89 @@
+.shell { display: grid; grid-template-columns: 252px minmax(0,1fr); min-height: 100vh; }
+
+.sidebar {
+  border-right: 1px dotted #c4c4c4; padding: 20px 0 18px;
+  display: flex; flex-direction: column; gap: 20px;
+  position: sticky; top: 0; height: 100vh; overflow: auto;
+}
+.brand-wrap { padding: 0 20px; }
+.brand { font-size: 23px; letter-spacing: 0.20em; }
+.section-kicker {
+  padding: 0 20px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #9a9a9a; margin-bottom: 8px;
+}
+.section-kicker.plain { padding: 0; font-size: 11px; margin-bottom: 0; }
+
+.dept {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: transparent; border: 0; border-left: 3px solid transparent;
+  padding: 9px 20px; font: inherit; cursor: pointer; text-decoration: none; color: inherit;
+}
+.dept:hover { background: #f6f6f6; }
+.dept.active { background: #fafafa; border-left-color: #111; }
+.chip {
+  width: 22px; height: 22px; border-radius: 5px; font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex: none;
+}
+.dept-body { flex: 1; min-width: 0; }
+.dept-label { display: block; font-size: 13px; letter-spacing: 0.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dept-person { display: block; font-size: 10.5px; color: #9a9a9a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.nav-groups { display: flex; flex-direction: column; gap: 16px; }
+.nav-groups .section-kicker { margin-bottom: 6px; }
+.nav-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+  text-align: left; background: transparent; border: 0; border-left: 3px solid transparent;
+  padding: 6px 20px; font: inherit; font-size: 12.5px; letter-spacing: 0.005em;
+  color: #3d3d3d; cursor: pointer; text-decoration: none;
+}
+.nav-item:hover { background: #f6f6f6; }
+.nav-item.active { background: #fafafa; border-left-color: #111; color: #111; font-weight: 600; }
+.nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-count { font-size: 10.5px; color: #9a9a9a; flex: none; text-transform: lowercase; }
+
+.signed-in-wrap { margin-top: auto; padding: 0 20px; }
+.signed-in { border-top: 1px dotted #c4c4c4; padding-top: 14px; display: flex; flex-direction: column; gap: 3px; }
+.signed-name { font-size: 13.5px; font-weight: 600; }
+.signed-title { font-size: 11px; color: #8a8a8a; }
+
+.main { position: relative; min-width: 0; }
+
+.topbar {
+  display: flex; align-items: center; gap: 20px; padding: 12px 28px;
+  border-bottom: 1px dotted #c4c4c4; position: sticky; top: 0; background: #fff; z-index: 20;
+}
+.page-title { font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+.search { flex: 1; max-width: 560px; position: relative; }
+.search-input { background: #fafafa; border-color: #b5b5b5; padding-left: 16px; }
+.kbd {
+  position: absolute; right: 9px; top: 8px; font-size: 10.5px; color: #9a9a9a;
+  border: 1px dotted #c4c4c4; border-radius: 5px; padding: 1px 5px; background: #fff;
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 26px; }
+.notif {
+  position: relative; padding: 0 16px 0 0; background: transparent; border: 0;
+  font: inherit; font-size: 12px; color: #6b6b6b; cursor: pointer; text-decoration: none;
+}
+.notif:hover { color: #111; }
+.badge {
+  position: absolute; top: -6px; right: -4px; min-width: 16px; height: 16px; border-radius: 999px;
+  background: #111111; color: #fff; font-size: 10px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0 4px;
+}
+.identity { display: flex; align-items: center; gap: 9px; }
+.who { display: flex; align-items: center; gap: 9px; text-decoration: none; color: inherit; }
+.who:hover { opacity: 0.72; }
+.avatar {
+  width: 26px; height: 26px; border-radius: 999px; background: #111; color: #fff;
+  font-size: 10.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none;
+}
+.who-body { line-height: 1.2; }
+.who-name { display: block; font-size: 12.5px; font-weight: 600; }
+.who-title { display: block; font-size: 10.5px; color: #8a8a8a; }
+.signout {
+  margin-left: 8px; background: transparent; border: 1px dotted #b5b5b5; border-radius: 999px;
+  padding: 4px 12px; font: inherit; font-size: 11px; color: #6b6b6b; cursor: pointer;
+}
+.signout:hover { color: #111; border-color: #111; }
+
+.page { padding: 22px 28px 70px; }

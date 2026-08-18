@@ -1,0 +1,57 @@
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.skel-figures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.skel-charts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; }
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.figure-value {
+  font-family: 'Roboto', sans-serif;
+  font-size: clamp(19px, 1.8vw, 25px);
+  font-weight: 600;
+  margin-top: 6px;
+  white-space: nowrap;
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 14px;
+  margin-top: 14px;
+  align-items: start;
+}
+
+.feed-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+  align-items: start;
+}
+
+.stage {
+  flex: 1;
+  text-align: left;
+  border: 1px dotted #e7e7e7;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.stage:hover { border-color: #111; }
+
+.update-box {
+  background: #fafafa;
+  border-color: #b5b5b5;
+  border-radius: 999px;
+  font-family: inherit;
+  min-height: 70px;
+}
+
+@media (max-width: 1100px) {
+  .figures, .skel-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .charts, .feed-row, .skel-charts { grid-template-columns: minmax(0, 1fr); }
+}

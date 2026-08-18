@@ -1,0 +1,111 @@
+<h1 class="title">Day desk</h1>
+<div class="sub">Meetings, signatures and correspondence for the executive office. Every item is attached to its record.</div>
+
+@if (loading()) {
+  <div class="three">
+    @for (i of [1, 2, 3]; track i) { <app-skeleton width="100%" height="280px" /> }
+  </div>
+  <div class="wide"><app-skeleton width="100%" height="220px" /></div>
+} @else {
+  @if (blocked(); as fail) {
+  <div class="wide"><app-empty-state [heading]="fail.heading" [note]="fail.note" /></div>
+  } @else {
+  <div class="three">
+    <div class="panel">
+      <h4 class="panel-title">Today</h4>
+      <div class="panel-sub">Minutes attach to the record under discussion</div>
+      <div class="stack">
+        @if (meetings().failure; as fail) {
+          <div class="denied">{{ fail.heading }} — {{ fail.note }}</div>
+        } @else {
+          @for (meeting of meetings().rows; track meeting.id) {
+            <div class="meeting">
+              <span class="meeting-time">{{ meeting.time }}</span>
+              <div>
+                <div class="meeting-title">{{ meeting.title }}</div>
+                <div class="meeting-meta">{{ meeting.meta }}</div>
+              </div>
+            </div>
+          } @empty {
+            <div class="none">Nothing in the diary today.</div>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4 class="panel-title">Awaiting signature</h4>
+      <div class="panel-sub">Sending logs the request on the contract</div>
+      <div class="stack">
+        @if (signatures().failure; as fail) {
+          <div class="denied">{{ fail.heading }} — {{ fail.note }}</div>
+        } @else {
+          @for (signature of signatures().rows; track signature.id) {
+            <div class="sig">
+              <div class="sig-text">{{ signature.text }}</div>
+              <div class="sig-meta">{{ signature.meta }}</div>
+              <button type="button" [class]="'btn sig-btn ' + signature.button_class"
+                      [disabled]="signature.state !== 'draft' || !!sending()"
+                      (click)="send(signature)">
+                @if (sending() === signature.id) { <span class="spin"></span> }
+                {{ ctaFor(signature) }}
+              </button>
+            </div>
+          } @empty {
+            <div class="none">Nothing is waiting on a signature.</div>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4 class="panel-title">Week at a glance</h4>
+      <div class="panel-sub">Office load by day</div>
+      <svg viewBox="0 0 300 170" width="100%" height="170" class="week" aria-hidden="true">
+        <line x1="26" y1="140" x2="290" y2="140" stroke="#d8d8d8" />
+        <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+          <text x="4" y="30">8</text><text x="4" y="76">5</text><text x="4" y="122">2</text>
+        </g>
+        <g stroke="#f0f0f0">
+          <line x1="26" y1="26" x2="290" y2="26" />
+          <line x1="26" y1="72" x2="290" y2="72" />
+          <line x1="26" y1="118" x2="290" y2="118" />
+        </g>
+        <g>
+          <rect x="42" y="42" width="26" height="98" fill="#111" />
+          <rect x="42" y="42" width="26" height="30" fill="#3d3d3d" />
+          <rect x="94" y="72" width="26" height="68" fill="#111" />
+          <rect x="94" y="72" width="26" height="22" fill="#3d3d3d" />
+          <rect x="146" y="56" width="26" height="84" fill="#111" />
+          <rect x="146" y="56" width="26" height="34" fill="#3d3d3d" />
+          <rect x="198" y="88" width="26" height="52" fill="#111" />
+          <rect x="198" y="88" width="26" height="14" fill="#3d3d3d" />
+          <rect x="250" y="104" width="26" height="36" fill="#111" />
+        </g>
+        <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+          <text x="46" y="156">Mon</text><text x="100" y="156">Tue</text>
+          <text x="152" y="156">Wed</text><text x="204" y="156">Thu</text>
+          <text x="258" y="156">Fri</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span class="key"><span class="swatch" style="background:#111"></span>Meetings</span>
+        <span class="key"><span class="swatch" style="background:#3d3d3d"></span>Signature deadlines</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel wide">
+    <h4 class="panel-title">Correspondence and reminders</h4>
+    @if (correspondence().failure; as fail) {
+      <div class="denied">{{ fail.heading }} — {{ fail.note }}</div>
+    } @else {
+      <div class="table-wrap">
+        <app-data-table
+          [cols]="correspondenceCols" [rows]="correspondenceRows()" [minWidth]="640"
+          [clickable]="false" emptyText="No correspondence is open." />
+      </div>
+    }
+  </div>
+  }
+}

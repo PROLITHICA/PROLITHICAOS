@@ -1,0 +1,47 @@
+<div class="login">
+
+  <div class="panel">
+    <div class="mark wordmark">Prolithica</div>
+    <div>
+      <h1 class="headline">The company, as one connected record.</h1>
+      <p class="body">
+        Opportunities become proposals, proposals become contracts, contracts become projects,
+        and delivery becomes cash. Sign in and you see the part of it you are responsible for.
+      </p>
+    </div>
+    <div class="foot">Internal system · authorised users only · all activity is audited</div>
+  </div>
+
+  <div class="form-side">
+    <form class="form" (ngSubmit)="signIn()">
+      <h2 class="form-title">Sign in</h2>
+      <div class="form-note">Use your Prolithica account</div>
+
+      <div class="fields">
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input class="input" id="login-email" type="email" name="email" autocomplete="username"
+                 placeholder="name@prolithica.com"
+                 [ngModel]="email()" (ngModelChange)="email.set($event)">
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input class="input" id="login-password" type="password" name="password"
+                 autocomplete="current-password" placeholder="••••••••"
+                 [ngModel]="password()" (ngModelChange)="password.set($event)">
+        </div>
+
+        @if (error()) {
+          <div class="error" role="alert">{{ error() }}</div>
+        }
+
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="busy()">
+          @if (busy()) { <span class="spin"></span> }
+          Sign in
+        </button>
+
+        <div class="mfa">Multi-factor authentication is required for finance and administration.</div>
+      </div>
+    </form>
+  </div>
+</div>

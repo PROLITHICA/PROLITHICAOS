@@ -1,0 +1,90 @@
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand-wrap">
+      <div class="brand wordmark">Prolithica</div>
+    </div>
+
+    <div>
+      <div class="section-kicker">Department</div>
+      @for (dept of departments(); track dept.id) {
+        <a class="dept" [class.active]="dept.slug === activeDept()" [routerLink]="departmentRoute(dept)">
+          <span class="chip"
+                [style.background]="dept.slug === activeDept() ? '#111' : '#f0f0f0'"
+                [style.color]="dept.slug === activeDept() ? '#fff' : '#6b6b6b'">{{ dept.initials }}</span>
+          <span class="dept-body">
+            <span class="dept-label"
+                  [style.font-weight]="dept.slug === activeDept() ? 600 : 400"
+                  [style.color]="dept.slug === activeDept() ? '#111' : '#3d3d3d'">{{ dept.label }}</span>
+            <span class="dept-person">{{ dept.head?.name || '' }}</span>
+          </span>
+        </a>
+      }
+    </div>
+
+    <div class="nav-groups">
+      @for (group of navGroups(); track group.heading) {
+        <div>
+          <div class="section-kicker">{{ group.heading }}</div>
+          @for (item of group.items; track item.key) {
+            <a class="nav-item" [routerLink]="item.route" routerLinkActive="active"
+               [routerLinkActiveOptions]="{ exact: false }">
+              <span class="nav-label">{{ item.label }}</span>
+              <span class="nav-count">{{ item.count }}</span>
+            </a>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="signed-in-wrap">
+      <div class="signed-in">
+        <div class="section-kicker plain">Signed in</div>
+        <div class="signed-name">{{ person() }}</div>
+        <div class="signed-title">{{ personTitle() }}</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="page-title">{{ pageTitle() }}</div>
+      <div class="search">
+        <input class="input search-input"
+               placeholder="Search clients, projects, contracts, invoices, requirements"
+               [ngModel]="query()" (ngModelChange)="query.set($event)"
+               (focus)="goSearch()" (keydown.enter)="goSearch()">
+        <span class="kbd">&#8984;K</span>
+      </div>
+      <div class="topbar-right">
+        <a class="notif" routerLink="/notifications">Notifications
+          <span class="badge">{{ notifCount() }}</span>
+        </a>
+        <span class="identity">
+          <a class="who" routerLink="/profile">
+            <span class="avatar">{{ initials() }}</span>
+            <span class="who-body">
+              <span class="who-name">{{ person() }}</span>
+              <span class="who-title">{{ personTitle() }}</span>
+            </span>
+          </a>
+          <button type="button" class="signout" (click)="signOut()">Sign out</button>
+        </span>
+      </div>
+    </div>
+
+    @if (loader.loading()) {
+      <app-skeleton variant="page" [note]="loader.note()" />
+    }
+
+    <div class="page fade">
+      @if (crumbs().length) {
+        <app-breadcrumbs [crumbs]="crumbs()" [current]="crumbCurrent()" />
+      }
+      <router-outlet />
+    </div>
+
+    <app-toast-host />
+  </main>
+</div>

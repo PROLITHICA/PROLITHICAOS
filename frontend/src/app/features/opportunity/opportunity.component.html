@@ -1,0 +1,88 @@
+@if (loading()) {
+  <div class="skel-head">
+    <app-skeleton width="240px" height="12px" />
+    <app-skeleton width="480px" height="30px" />
+    <app-skeleton width="360px" height="13px" />
+  </div>
+  <div class="stages">
+    @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) { <app-skeleton width="100%" height="62px" /> }
+  </div>
+  <div class="split">
+    <app-skeleton width="100%" height="320px" />
+    <app-skeleton width="100%" height="320px" />
+  </div>
+} @else {
+  @if (failure(); as fail) {
+  <app-empty-state [heading]="fail.heading" [note]="fail.note" />
+  } @else {
+    @if (opportunity(); as record) {
+  <div class="head">
+    <div>
+      <div class="kicker">{{ record.kicker }}</div>
+      <h1 class="title">{{ record.name }}</h1>
+      <div class="sub">{{ record.subtitle }}</div>
+    </div>
+    <div class="head-actions">
+      @if (canAdvance(record)) {
+        <button type="button" class="btn btn-secondary nowrap" [disabled]="advancing()" (click)="advance()">
+          @if (advancing()) { <span class="spin spin-dark"></span> }
+          Advance stage
+        </button>
+      }
+      <a class="btn btn-primary nowrap" routerLink="/lifecycle">Follow the chain</a>
+    </div>
+  </div>
+
+  <div class="stages">
+    @for (stage of record.stages; track $index) {
+      <div class="stage" [style.border-color]="stage.border" [style.background]="stage.bg">
+        <div class="stage-n">{{ stage.n }}</div>
+        <div class="stage-name" [style.font-weight]="stage.weight">{{ stage.name }}</div>
+        <div class="stage-when">{{ stage.when }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="split">
+    <div class="panel">
+      <h4 class="panel-title">Discovery workspace</h4>
+      <div class="panel-sub">Structured, not a text box — every finding below became a requirement in delivery</div>
+      <div class="findings">
+        @for (finding of record.discovery; track $index) {
+          <div class="finding">
+            <div class="finding-label">{{ finding.label }}</div>
+            <div class="finding-value">{{ finding.value }}</div>
+            <div class="finding-trace">{{ finding.trace }}</div>
+          </div>
+        } @empty {
+          <div class="none">No discovery findings were recorded on this opportunity.</div>
+        }
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="panel">
+        <h4 class="panel-title tight">Requirements captured</h4>
+        @for (requirement of record.requirements; track $index) {
+          <div class="req">
+            <span class="req-id">{{ requirement.id }}</span>
+            <span class="req-text">{{ requirement.text }}</span>
+            <span class="tag" [class]="'tag ' + requirement.tagClass">{{ requirement.state }}</span>
+          </div>
+        } @empty {
+          <div class="none">Nothing has been turned into a requirement yet.</div>
+        }
+      </div>
+      <div class="panel">
+        <h4 class="panel-title tight">Commercial record</h4>
+        @for (field of record.fields_block; track $index) {
+          <div class="field-row">
+            <span class="field-label">{{ field.label }}</span><span>{{ field.value }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+    }
+  }
+}

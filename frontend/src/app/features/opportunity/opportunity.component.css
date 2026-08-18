@@ -1,0 +1,50 @@
+:host { display: block; }
+
+.skel-head { display: flex; flex-direction: column; gap: 8px; }
+
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.kicker { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #9a9a9a; }
+.title { font-size: 29px; margin: 5px 0 4px; }
+.sub { font-size: 12.5px; color: #8a8a8a; }
+.head-actions { display: flex; gap: 9px; flex: none; }
+.head-actions .btn-secondary { border-color: #b5b5b5; }
+
+.stages { display: flex; gap: 6px; margin-top: 20px; flex-wrap: wrap; }
+.stage { flex: 1 1 120px; border: 1px dotted #c4c4c4; border-radius: 12px; padding: 10px 12px; background: #fff; }
+.stage-n { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #9a9a9a; }
+.stage-name { font-size: 12.5px; margin-top: 3px; }
+.stage-when { font-size: 10.5px; color: #8a8a8a; }
+
+.split {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 14px; margin-top: 14px; align-items: start;
+}
+.col { display: flex; flex-direction: column; gap: 14px; }
+
+.panel { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 18px; }
+.panel-title { margin: 0 0 2px; font-size: 15px; }
+.panel-title.tight { margin: 0 0 8px; }
+.panel-sub { font-size: 11.5px; color: #8a8a8a; }
+
+.findings { display: flex; flex-direction: column; margin-top: 10px; }
+.finding { padding: 12px 0; border-bottom: 1px dotted #dcdcdc; }
+.finding-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9a9a; }
+.finding-value { font-size: 13px; margin-top: 4px; }
+.finding-trace { font-size: 11px; color: #9a9a9a; margin-top: 2px; }
+
+.req {
+  display: grid; grid-template-columns: 66px minmax(0, 1fr) auto;
+  gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px dotted #dcdcdc;
+}
+.req-id { font-size: 11px; color: #9a9a9a; }
+.req-text { font-size: 12.5px; }
+
+.field-row {
+  display: grid; grid-template-columns: 130px minmax(0, 1fr);
+  gap: 14px; font-size: 12.5px; padding: 7px 0; border-bottom: 1px dotted #dcdcdc;
+}
+.field-label { color: #8a8a8a; }
+
+.none { font-size: 12px; color: #8a8a8a; padding: 8px 0; }
+
+@media (max-width: 1100px) { .split { grid-template-columns: minmax(0, 1fr); } }

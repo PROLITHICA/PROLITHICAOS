@@ -1,0 +1,166 @@
+/* PROLITHICA OS — global stylesheet.
+   Ported from the reference design's <style> block plus the parts of the
+   broadsheet design-system stylesheet that the design actually uses. */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600&display=swap');
+
+@font-face {
+  font-family: "Anurati";
+  font-display: swap;
+  src: url("https://db.onlinewebfonts.com/t/a0ad88db9143083e90b4dd56f9048334.woff2") format("woff2"),
+       url("https://db.onlinewebfonts.com/t/a0ad88db9143083e90b4dd56f9048334.woff") format("woff"),
+       url("https://db.onlinewebfonts.com/t/a0ad88db9143083e90b4dd56f9048334.ttf") format("truetype");
+}
+
+/* ── tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --pl-bg: #ffffff;
+  --pl-ink: #111111;
+  --pl-mid: #3d3d3d;
+  --pl-muted: #6b6b6b;
+  --pl-muted-2: #8a8a8a;
+  --pl-muted-3: #9a9a9a;
+  --pl-hairline: #c4c4c4;
+  --pl-hairline-soft: #dcdcdc;
+  --pl-hairline-softer: #e0e0e0;
+  --pl-border-input: #b5b5b5;
+  --pl-surface: #fafafa;
+  --pl-radius-card: 16px;
+  --pl-radius-pill: 999px;
+  --pl-sidebar: 252px;
+  --pl-font: "Roboto", system-ui, sans-serif;
+  --pl-font-wordmark: "Anurati", "Roboto", sans-serif;
+}
+
+/* ── reset / base ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { background: #ffffff; margin: 0; padding: 0; }
+body {
+  font-family: var(--pl-font);
+  color: #111111;
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--pl-font);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+a { color: #3d3d3d; }
+a:hover { color: #111111; }
+button { font-family: inherit; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+::selection { background: #dedede; }
+
+/* ── wordmark ───────────────────────────────────────────────────────── */
+.wordmark {
+  font-family: var(--pl-font-wordmark);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #111;
+  line-height: 1.1;
+}
+
+/* ── buttons ────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; text-decoration: none;
+  font-family: inherit; font-weight: 500; font-size: 14px; line-height: 1.2;
+  color: #111111;
+  background: transparent; border: 1px solid transparent;
+  border-radius: 999px; letter-spacing: 0.02em; padding: 9px 18px;
+}
+.btn svg { display: block; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: #111111; color: #ffffff; }
+.btn-primary:hover { background: #333333; }
+.btn-primary:active { background: #000000; }
+.btn-secondary { border: 1px dotted #b5b5b5; }
+.btn-secondary:hover { background: rgba(17,17,17,0.07); }
+.btn-secondary:active { background: rgba(17,17,17,0.14); }
+.btn-ghost { color: #333333; padding-inline: 5px; }
+.btn-ghost:hover { background: #f0f0f0; }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-block { width: 100%; margin-top: 10px; }
+
+/* ── forms ──────────────────────────────────────────────────────────── */
+.field > label {
+  display: block; font-size: 12px; margin-bottom: 5px; color: #6b6b6b;
+}
+.input {
+  width: 100%; min-height: 36px; font: inherit; font-size: 14px;
+  color: #111111; caret-color: #111111; background: #ffffff;
+  border: 1px dotted #b5b5b5; border-radius: 999px; padding: 8px 16px;
+}
+.input::placeholder { color: #9a9a9a; opacity: 1; }
+.input:hover { border-color: #7a7a7a; }
+.input:focus-visible { border: 1px dotted #111111; outline-offset: 0; }
+textarea.input { border-radius: 18px; padding: 12px 16px; min-height: 90px; resize: vertical; }
+select.input { appearance: none; }
+
+/* ── cards ──────────────────────────────────────────────────────────── */
+.card {
+  border: 1px dotted #c4c4c4;
+  border-radius: 16px;
+  padding: 18px;
+  background: #fff;
+}
+
+/* ── tags ───────────────────────────────────────────────────────────── */
+.tag {
+  display: inline-flex; align-items: center;
+  font-family: inherit; border-radius: 999px; padding: 3px 10px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tag-accent { background: #ededed; color: #333333; }
+.tag-accent-2 { background: #111111; color: #ffffff; }
+.tag-outline { background: transparent; border: 1px dotted #a5a5a5; color: #444444; border-style: dotted; }
+.tag-neutral { background: #f5f5f5; color: #777777; }
+
+/* ── tables ─────────────────────────────────────────────────────────── */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; font-family: inherit; }
+.table th {
+  text-align: left; font-family: inherit; font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500;
+  color: #6b6b6b; padding: 10px; border-bottom: 1px dotted #c4c4c4;
+}
+.table td { padding: 10px; border-bottom: 1px dotted #dcdcdc; }
+.table tbody tr:hover { background: #fafafa; }
+
+/* ── rules ──────────────────────────────────────────────────────────── */
+.hr { height: 0; border: 0; border-top: 1px dotted #c4c4c4; margin: 20px 0; }
+
+/* ── animation ──────────────────────────────────────────────────────── */
+@keyframes pl-shimmer { 0% { background-position: -420px 0 } 100% { background-position: 420px 0 } }
+.skel {
+  background: linear-gradient(90deg, #f1f1f1 0%, #e6e6e6 40%, #f1f1f1 80%);
+  background-size: 420px 100%;
+  animation: pl-shimmer 1.2s linear infinite;
+  border-radius: 4px;
+}
+@keyframes pl-spin { to { transform: rotate(360deg) } }
+.spin {
+  width: 13px; height: 13px;
+  border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+  border-radius: 50%; animation: pl-spin 0.7s linear infinite;
+}
+.spin-dark {
+  border: 2px solid #e0e0e0; border-top-color: #3d3d3d;
+}
+@keyframes pl-boot { 0% { transform: translateX(-100%) } 60% { transform: translateX(10%) } 100% { transform: translateX(100%) } }
+.bootbar { animation: pl-boot 1.4s cubic-bezier(0.4,0,0.2,1) infinite; }
+@keyframes pl-fade { from { opacity: 0 } to { opacity: 1 } }
+.fade { animation: pl-fade 0.28s ease both; }
+
+/* ── shared page furniture ──────────────────────────────────────────── */
+.page-title { font-size: 28px; margin: 0 0 4px; }
+.page-subtitle { font-size: 12.5px; color: #8a8a8a; max-width: 74ch; }
+.muted { color: #6b6b6b; }
+.muted-2 { color: #8a8a8a; }
+.muted-3 { color: #9a9a9a; }
+.scroll-x { overflow-x: auto; max-width: 100%; }
+.nowrap { white-space: nowrap; }

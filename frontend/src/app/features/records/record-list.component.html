@@ -1,0 +1,99 @@
+@if (status() === 'unknown') {
+  <app-empty-state
+    heading="That register does not exist"
+    note="No record view is registered for this address. Pick a register from the sidebar." />
+} @else if (status() === 'forbidden') {
+  <app-empty-state
+    heading="Your role cannot see these records"
+    [note]="errorNote()" />
+} @else {
+
+  <app-page-header [title]="title()" [subtitle]="subtitle()">
+    <button type="button" class="btn btn-secondary export" (click)="openExport()">Export</button>
+    @if (canWrite()) {
+      <button type="button" class="btn btn-primary create" (click)="openCreate()">
+        {{ createLabel() }}
+      </button>
+    }
+  </app-page-header>
+
+  <div class="stats">
+    @if (status() === 'loading' && !stats().length) {
+      @for (slot of [0, 1, 2]; track slot) {
+        <app-skeleton height="112px" />
+      }
+    } @else {
+      @for (stat of stats(); track $index) {
+        <app-stat-tile [label]="stat.label" [value]="stat.value" [note]="stat.note ?? ''" />
+      }
+    }
+  </div>
+
+  <div class="panel">
+    <app-card [padding]="18">
+      <div class="bar">
+        <input class="input filter" placeholder="Filter these records"
+               [ngModel]="filterText()" (ngModelChange)="onFilter($event)"
+               [attr.aria-label]="'Filter ' + title()">
+        @if (sorts().length) {
+          <select class="input sort" [ngModel]="ordering()" (ngModelChange)="onOrdering($event)"
+                  aria-label="Order these records">
+            <option value="">Order by</option>
+            @for (sort of sorts(); track sort.param) {
+              <option [value]="sort.param">{{ sort.label }}</option>
+            }
+          </select>
+        }
+        <span class="count">{{ countLine() }}</span>
+      </div>
+
+      @if (status() === 'loading') {
+        <div class="loading">
+          @for (slot of [0, 1, 2, 3, 4]; track slot) {
+            <app-skeleton height="34px" />
+          }
+        </div>
+      } @else if (status() === 'error') {
+        <app-empty-state
+          heading="These records could not be loaded"
+          [note]="errorNote()"
+          actionLabel="Try again"
+          (action)="reload()" />
+      } @else {
+        <div class="table-wrap">
+          <app-data-table
+            [cols]="cols()"
+            [rows]="lines()"
+            [clickable]="clickable()"
+            [emptyText]="emptyText()"
+            (rowClick)="openRow($event)" />
+        </div>
+
+        @if (showPager()) {
+          <div class="pager">
+            <button type="button" class="btn btn-secondary" [disabled]="page() <= 1"
+                    (click)="prevPage()">Previous</button>
+            <span class="pages">Page {{ page() }} of {{ pageCount() }}</span>
+            <button type="button" class="btn btn-secondary" [disabled]="page() >= pageCount()"
+                    (click)="nextPage()">Next</button>
+          </div>
+        }
+      }
+    </app-card>
+  </div>
+}
+
+<app-modal
+  [open]="modalKind() !== null"
+  [title]="form()?.title ?? ''"
+  [subtitle]="form()?.subtitle ?? ''"
+  [inherit]="form()?.inherit ?? []"
+  [fields]="form()?.fields ?? []"
+  [submitLabel]="form()?.submit ?? 'Save'"
+  [busy]="submitting()"
+  (close)="closeForm()"
+  (submit)="submitForm($event)">
+  @if (formError()) {
+    <div class="form-error">{{ formError() }}</div>
+  }
+</app-modal>
