@@ -19,26 +19,32 @@
 } @else {
   @if (project(); as p) {
     <!-- ── header ─────────────────────────────────────────────────── -->
+    <div class="head-flex">
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
       <div>
-        <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#9a9a9a">{{ p.kicker }}</div>
+        <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--pl-color-9a9a9a)">{{ p.kicker }}</div>
         <h1 style="font-size:29px;margin:5px 0 4px">{{ p.name }}</h1>
-        <div style="font-size:12.5px;color:#8a8a8a">{{ p.subtitle }}</div>
+        <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">{{ p.subtitle }}</div>
       </div>
       <div style="display:flex;gap:9px">
-        <button type="button" class="btn btn-secondary" (click)="goLifecycle()" style="border-color:#b5b5b5">Walk the chain</button>
-        <button type="button" class="btn btn-primary" (click)="goCause()" style="background:#111">Show me the cause</button>
+        @if (canEdit()) {
+          <button type="button" class="btn btn-secondary" (click)="openEdit()"
+                  style="border-color:var(--pl-color-b5b5b5)">Edit project</button>
+        }
+        <button type="button" class="btn btn-secondary" (click)="goLifecycle()" style="border-color:var(--pl-color-b5b5b5)">Walk the chain</button>
+        <button type="button" class="btn btn-primary" (click)="goCause()" style="background:var(--pl-color-111111)">Show me the cause</button>
       </div>
+    </div>
     </div>
 
     <!-- ── figures ────────────────────────────────────────────────── -->
     @if (figures().length) {
       <div class="figures">
         @for (f of figures(); track f.label) {
-          <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:16px">
-            <div style="font-size:11.5px;color:#6b6b6b">{{ f.label }}</div>
-            <div class="figure-value" [style.color]="f.col">{{ f.value }}</div>
-            <div style="font-size:11px;color:#9a9a9a;margin-top:4px">{{ f.note }}</div>
+          <div class="figure">
+            <div style="font-size:11.5px;color:var(--pl-color-6b6b6b)">{{ f.label }}</div>
+            <div class="figure-value" [style.color]="(f.col) | themeColor">{{ f.value }}</div>
+            <div style="font-size:11px;color:var(--pl-color-9a9a9a);margin-top:4px">{{ f.note }}</div>
           </div>
         }
       </div>
@@ -47,57 +53,57 @@
     <!-- ── charts ─────────────────────────────────────────────────── -->
     <div class="charts" *appHasPerm="'project_financials:restricted'">
       @if (marginChart(); as m) {
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="pane">
           <h4 style="margin:0 0 2px;font-size:15px">{{ m.title }}</h4>
-          <div style="font-size:11.5px;color:#8a8a8a">{{ m.subtitle }}</div>
-          <svg viewBox="0 0 240 150" width="100%" height="150" style="margin-top:10px" aria-hidden="true">
-            <path [attr.d]="m.arc || 'M30 130 A 90 90 0 0 1 210 130'" fill="none" [attr.stroke]="m.track || '#f0f0f0'" stroke-width="18" />
-            <path [attr.d]="m.arc || 'M30 130 A 90 90 0 0 1 210 130'" fill="none" [attr.stroke]="m.stroke || '#111111'" stroke-width="18" [attr.stroke-dasharray]="m.dash_array || '175 283'" />
-            <line x1="188" y1="62" x2="196" y2="46" stroke="#111" stroke-width="2" />
-            <text x="194" y="40" text-anchor="end" font-size="10" fill="#111" font-family="Roboto, sans-serif">{{ m.plan_label }}</text>
-            <text x="120" y="118" text-anchor="middle" font-size="30" font-weight="600" fill="#111" font-family="Roboto, sans-serif">{{ m.actual }}</text>
-            <text x="120" y="136" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Roboto, sans-serif">{{ m.caption }}</text>
+          <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">{{ m.subtitle }}</div>
+          <div class="margin-plan">{{ m.plan_label }}</div>
+          <svg class="margin-gauge" viewBox="0 0 240 145" width="100%" height="150" role="img" [attr.aria-label]="m.title + ': ' + m.actual + ', ' + m.plan_label">
+            <path [attr.d]="m.arc || 'M30 130 A 90 90 0 0 1 210 130'" fill="none" [attr.stroke]="(m.track || 'var(--pl-color-f0f0f0)') | themeColor" stroke-width="18" />
+            <path [attr.d]="m.arc || 'M30 130 A 90 90 0 0 1 210 130'" fill="none" [attr.stroke]="(m.stroke || 'var(--pl-color-111111)') | themeColor" stroke-width="18" [attr.stroke-dasharray]="m.dash_array || '175 283'" />
+            <line x1="188" y1="62" x2="196" y2="46" stroke="var(--pl-color-111111)" stroke-width="2" />
+            <text x="120" y="118" text-anchor="middle" font-size="30" font-weight="600" fill="var(--pl-color-111111)" font-family="Roboto, sans-serif">{{ m.actual }}</text>
           </svg>
-          <div style="border-top:1px dotted #dcdcdc;padding-top:10px;font-size:12px;color:#4a4a4a">{{ m.note }}</div>
+          <p class="margin-caption">{{ m.caption }}</p>
+          <div style="border-top:1px solid var(--pl-rule);padding-top:12px;font-size:12px;color:var(--pl-color-4a4a4a)">{{ m.note }}</div>
         </div>
       }
 
       @if (costChart(); as c) {
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="pane">
           <h4 style="margin:0 0 2px;font-size:15px">{{ c.title }}</h4>
-          <div style="font-size:11.5px;color:#8a8a8a">{{ c.subtitle }}</div>
+          <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">{{ c.subtitle }}</div>
           <svg viewBox="0 0 460 190" width="100%" height="190" style="margin-top:10px" aria-hidden="true">
-            <g stroke="#f0f0f0">
+            <g stroke="var(--pl-color-f0f0f0)">
               @for (y of c.grid || [20,58,96,134]; track $index) {
                 <line x1="34" [attr.y1]="y" x2="450" [attr.y2]="y" />
               }
             </g>
-            <line x1="34" [attr.y1]="c.baseline || 160" x2="450" [attr.y2]="c.baseline || 160" stroke="#d8d8d8" />
-            <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+            <line x1="34" [attr.y1]="c.baseline || 160" x2="450" [attr.y2]="c.baseline || 160" stroke="var(--pl-color-d8d8d8)" />
+            <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
               @for (a of axisLabels(); track $index) {
                 <text [attr.x]="a.x" [attr.y]="a.y">{{ a.text }}</text>
               }
             </g>
-            <polyline [attr.points]="c.budget_used || ''" fill="none" stroke="#3d3d3d" stroke-width="2" />
-            <polyline [attr.points]="c.work_complete || ''" fill="none" stroke="#111" stroke-width="2" stroke-dasharray="0" />
-            <polyline [attr.points]="c.work_forecast || ''" fill="none" stroke="#111" stroke-width="2" stroke-dasharray="4 3" />
-            <polyline [attr.points]="c.budget_forecast || ''" fill="none" stroke="#3d3d3d" stroke-width="2" stroke-dasharray="4 3" />
-            <circle cx="390" cy="58" r="3.5" fill="#3d3d3d" />
-            <circle cx="390" cy="88" r="3.5" fill="#111" />
-            <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+            <polyline [attr.points]="c.budget_used || ''" fill="none" stroke="var(--pl-color-3d3d3d)" stroke-width="2" />
+            <polyline [attr.points]="c.work_complete || ''" fill="none" stroke="var(--pl-color-111111)" stroke-width="2" stroke-dasharray="0" />
+            <polyline [attr.points]="c.work_forecast || ''" fill="none" stroke="var(--pl-color-111111)" stroke-width="2" stroke-dasharray="4 3" />
+            <polyline [attr.points]="c.budget_forecast || ''" fill="none" stroke="var(--pl-color-3d3d3d)" stroke-width="2" stroke-dasharray="4 3" />
+            <circle cx="390" cy="58" r="3.5" fill="var(--pl-color-3d3d3d)" />
+            <circle cx="390" cy="88" r="3.5" fill="var(--pl-color-111111)" />
+            <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
               @for (l of costLabels(); track $index) {
                 <text [attr.x]="l.x" y="178">{{ l.label }}</text>
               }
             </g>
           </svg>
-          <div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:11px;color:#6b6b6b;border-top:1px dotted #dcdcdc;padding-top:9px">
+          <div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:11px;color:var(--pl-color-6b6b6b);border-top:1px solid var(--pl-rule);padding-top:11px">
             @for (item of c.legend || []; track $index) {
               @if ($index < 2) {
                 <span style="display:flex;align-items:center;gap:6px;white-space:nowrap">
-                  <span style="width:14px;height:2px;flex:none;display:inline-block" [style.background]="item.col"></span>{{ item.label }}
+                  <span style="width:14px;height:2px;flex:none;display:inline-block" [style.background]="(item.col) | themeColor"></span>{{ item.label }}
                 </span>
               } @else {
-                <span style="color:#9a9a9a">{{ item.label }}</span>
+                <span style="color:var(--pl-color-9a9a9a)">{{ item.label }}</span>
               }
             }
           </div>
@@ -106,98 +112,104 @@
     </div>
 
     <!-- ── delivery stage ─────────────────────────────────────────── -->
-    <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px;margin-top:14px">
+    <div class="pane">
+      <div class="head-flex">
       <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px">
         <div>
           <h4 style="margin:0 0 2px;font-size:15px">Delivery stage</h4>
-          <div style="font-size:11.5px;color:#8a8a8a">Changing the stage writes to the project timeline, the milestone plan and the client report</div>
+          <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Changing the stage writes to the project timeline, the milestone plan and the client report</div>
         </div>
         <div style="display:flex;gap:9px">
-          <button type="button" class="btn btn-secondary" (click)="stageBack()" [disabled]="stageBusy()" style="border-color:#b5b5b5;font-size:12.5px;padding:6px 12px">← Move back</button>
+          <button type="button" class="btn btn-secondary" (click)="stageBack()" [disabled]="stageBusy()" style="border-color:var(--pl-color-b5b5b5);font-size:12.5px;padding:6px 12px">← Move back</button>
           <button type="button" class="btn btn-primary" (click)="stageNext()" [disabled]="stageBusy()" style="font-size:12.5px;padding:6px 12px">Advance stage →</button>
         </div>
       </div>
+      </div>
+      <div class="stage-scroll">
       <div style="display:flex;gap:6px;margin-top:14px">
         @for (phase of phases(); track phase.index) {
           <button type="button" class="stage" (click)="setPhase(phase.index)"
-                  [style.background]="phase.bg" [style.color]="phase.col" [style.border-color]="phase.border">
-            <span style="display:block;height:4px;border-radius:2px;margin-bottom:8px;overflow:hidden" [style.background]="phase.barBg">
-              <span style="display:block;height:4px" [style.width]="phase.barW" [style.background]="phase.barCol"></span>
+                  [style.background]="(phase.bg) | themeColor" [style.color]="(phase.col) | themeColor" [style.border-color]="(phase.border) | themeColor">
+            <span style="display:block;height:4px;border-radius:2px;margin-bottom:8px;overflow:hidden" [style.background]="(phase.barBg) | themeColor">
+              <span style="display:block;height:4px" [style.width]="phase.barW" [style.background]="(phase.barCol) | themeColor"></span>
             </span>
-            <span style="display:block;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#9a9a9a">Stage {{ phase.n }}</span>
+            <span style="display:block;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--pl-color-9a9a9a)">Stage {{ phase.n }}</span>
             <span style="display:block;font-family:'Roboto',sans-serif;font-weight:600;font-size:13.5px;margin-top:2px">{{ phase.name }}</span>
-            <span style="display:block;font-size:10.5px;color:#8a8a8a">{{ phase.state }}</span>
+            <span style="display:block;font-size:10.5px;color:var(--pl-color-8a8a8a)">{{ phase.state }}</span>
           </button>
         }
+      </div>
       </div>
     </div>
 
     <!-- ── updates + documents ────────────────────────────────────── -->
     <div class="feed-row">
-      <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+      <div class="pane">
         <h4 style="margin:0 0 2px;font-size:15px">Progress updates</h4>
-        <div style="font-size:11.5px;color:#8a8a8a">Posted by the team, visible to management and attached to this project for good</div>
+        <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Posted by the team, visible to management and attached to this project for good</div>
         <div style="margin-top:12px">
           <textarea class="input update-box"
                     placeholder="Write a progress update — what moved, what is blocked, what is next"
                     [value]="draft()"
                     (input)="onDraft($any($event.target).value)"></textarea>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px">
-            <span style="font-size:11px;color:#9a9a9a">Posting as {{ person() }} · {{ personTitle() }}</span>
+            <span style="font-size:11px;color:var(--pl-color-9a9a9a)">Posting as {{ person() }} · {{ personTitle() }}</span>
             <button type="button" class="btn btn-primary" (click)="postUpdate()" [disabled]="postBusy()" style="font-size:12.5px;padding:6px 14px">
               @if (postBusy()) { <span class="spin"></span> }
               Post update
             </button>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:0;margin-top:16px;border-top:1px dotted #dcdcdc">
+        <div style="display:flex;flex-direction:column;gap:0;margin-top:16px;border-top:1px solid var(--pl-rule)">
           @for (u of updates(); track u.id) {
-            <div style="display:grid;grid-template-columns:16px minmax(0,1fr);gap:12px;padding:13px 0;border-bottom:1px dotted #dcdcdc">
-              <span style="width:9px;height:9px;margin-top:5px;border-radius:999px;border:1.5px solid #111" [style.background]="u.dot"></span>
+            <div class="row-rule" style="display:grid;grid-template-columns:16px minmax(0,1fr);gap:12px;padding:14px 0">
+              <span style="width:9px;height:9px;margin-top:5px;border-radius:999px;border:1.5px solid var(--pl-color-111111)" [style.background]="(u.dot) | themeColor"></span>
               <div>
                 <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
                   <span style="font-size:12.5px;font-weight:600">{{ u.who }}</span>
-                  <span style="font-size:11px;color:#9a9a9a">{{ u.when_label }}</span>
+                  <span style="font-size:11px;color:var(--pl-color-9a9a9a)">{{ u.when_label }}</span>
                   <span class="tag" [class]="'tag ' + u.tag_class">{{ u.kind }}</span>
                 </div>
-                <div style="font-size:13px;color:#333;margin-top:3px">{{ u.text }}</div>
+                <div style="font-size:13px;color:var(--pl-color-333333);margin-top:3px">{{ u.text }}</div>
               </div>
             </div>
           } @empty {
-            <div style="font-size:12.5px;color:#8a8a8a;padding:16px 0">No updates yet. The first one you post becomes part of the record.</div>
+            <div style="font-size:12.5px;color:var(--pl-color-8a8a8a);padding:16px 0">No updates yet. The first one you post becomes part of the record.</div>
           }
         </div>
       </div>
 
-      <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+      <div class="pane">
+        <div class="head-flex">
         <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px">
           <div>
             <h4 style="margin:0 0 2px;font-size:15px">Project documents</h4>
-            <div style="font-size:11.5px;color:#8a8a8a">{{ docCountLabel() }} in the {{ p.name }} delivery folder</div>
+            <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">{{ docCountLabel() }} in the {{ p.name }} delivery folder</div>
           </div>
-          <button type="button" class="btn btn-secondary" (click)="goDocs()" style="border-color:#b5b5b5;font-size:12.5px;padding:6px 12px">Open storage</button>
+          <button type="button" class="btn btn-secondary" (click)="goDocs()" style="border-color:var(--pl-color-b5b5b5);font-size:12.5px;padding:6px 12px">Open storage</button>
+        </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:0;margin-top:10px">
           @for (f of docs(); track f.id) {
-            <div style="display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px dotted #dcdcdc">
-              <span style="font-size:9px;font-weight:600;letter-spacing:0.04em;color:#666;border:1px dotted #b5b5b5;border-radius:5px;padding:2px 3px;text-align:center">{{ f.kind }}</span>
+            <div class="row-rule" style="display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0">
+              <span style="font-size:9px;font-weight:600;letter-spacing:0.04em;color:var(--pl-color-666666);border:1px dotted var(--pl-color-b5b5b5);border-radius:5px;padding:2px 3px;text-align:center">{{ f.kind }}</span>
               <div>
                 <div style="font-size:12.5px">{{ f.name }}</div>
-                <div style="font-size:10.5px;color:#9a9a9a">{{ f.added_by_name }} · {{ f.when_label }}</div>
+                <div style="font-size:10.5px;color:var(--pl-color-9a9a9a)">{{ f.added_by_name }} · {{ f.when_label }}</div>
               </div>
-              <span style="font-size:10.5px;color:#9a9a9a">{{ f.size_label }}</span>
+              <span style="font-size:10.5px;color:var(--pl-color-9a9a9a)">{{ f.size_label }}</span>
             </div>
           } @empty {
-            <div style="font-size:12.5px;color:#8a8a8a;padding:12px 0">Nothing filed against this project yet.</div>
+            <div style="font-size:12.5px;color:var(--pl-color-8a8a8a);padding:12px 0">Nothing filed against this project yet.</div>
           }
         </div>
       </div>
     </div>
 
     <!-- ── milestones ─────────────────────────────────────────────── -->
-    <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px;margin-top:14px">
+    <div class="pane">
       <h4 style="margin:0 0 2px;font-size:15px">Milestones</h4>
-      <div style="font-size:11.5px;color:#8a8a8a">Acceptance drives billing. Finance is never told separately.</div>
+      <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Acceptance drives billing. Finance is never told separately.</div>
       <div style="overflow-x:auto;max-width:100%;margin-top:10px">
         <table class="table" style="min-width:640px">
           <thead>
@@ -207,14 +219,14 @@
             @for (m of p.milestones; track m.id) {
               <tr>
                 <td style="font-weight:600">{{ m.name }}</td>
-                <td style="color:#6b6b6b">{{ m.planned }}</td>
-                <td [style.color]="m.actual_col">{{ m.actual }}</td>
+                <td style="color:var(--pl-color-6b6b6b)">{{ m.planned }}</td>
+                <td [style.color]="(m.actual_col) | themeColor">{{ m.actual }}</td>
                 <td style="text-align:right">{{ m.value }}</td>
-                <td style="color:#6b6b6b">{{ m.acceptance }}</td>
+                <td style="color:var(--pl-color-6b6b6b)">{{ m.acceptance }}</td>
                 <td><span class="tag" [class]="'tag ' + m.tag_class">{{ m.billing }}</span></td>
               </tr>
             } @empty {
-              <tr><td colspan="6" style="color:#8a8a8a;font-size:12.5px;text-align:center;padding:26px 10px">No milestones on this project yet.</td></tr>
+              <tr><td colspan="6" style="color:var(--pl-color-8a8a8a);font-size:12.5px;text-align:center;padding:26px 10px">No milestones on this project yet.</td></tr>
             }
           </tbody>
         </table>
@@ -222,9 +234,9 @@
     </div>
 
     <!-- ── requirements ───────────────────────────────────────────── -->
-    <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px;margin-top:14px">
+    <div class="pane">
       <h4 style="margin:0 0 2px;font-size:15px">Requirements</h4>
-      <div style="font-size:11.5px;color:#8a8a8a">Each one traceable from discovery to client acceptance</div>
+      <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Each one traceable from discovery to client acceptance</div>
       <div style="overflow-x:auto;max-width:100%;margin-top:10px">
         <table class="table" style="min-width:640px">
           <thead>
@@ -233,14 +245,14 @@
           <tbody>
             @for (r of p.requirements; track r.id) {
               <tr>
-                <td style="color:#8a8a8a;white-space:nowrap">{{ r.ref_id }}</td>
+                <td style="color:var(--pl-color-8a8a8a);white-space:nowrap">{{ r.ref_id }}</td>
                 <td>{{ r.text }}</td>
-                <td style="color:#6b6b6b">{{ r.source }}</td>
-                <td style="color:#6b6b6b">{{ r.work }}</td>
+                <td style="color:var(--pl-color-6b6b6b)">{{ r.source }}</td>
+                <td style="color:var(--pl-color-6b6b6b)">{{ r.work }}</td>
                 <td><span class="tag" [class]="'tag ' + r.tag_class">{{ r.status }}</span></td>
               </tr>
             } @empty {
-              <tr><td colspan="5" style="color:#8a8a8a;font-size:12.5px;text-align:center;padding:26px 10px">No requirements recorded against this project.</td></tr>
+              <tr><td colspan="5" style="color:var(--pl-color-8a8a8a);font-size:12.5px;text-align:center;padding:26px 10px">No requirements recorded against this project.</td></tr>
             }
           </tbody>
         </table>
@@ -248,3 +260,16 @@
     </div>
   }
 }
+
+<!-- Edit the project record itself. -->
+<app-modal
+  [open]="editing()"
+  title="Edit project"
+  subtitle="Change the record and every view of this project follows — dashboards, registers and the margin position."
+  [inherit]="['Client, contract and requirements stay attached', 'Health follows the margin unless you set it yourself']"
+  [fields]="editFields()"
+  [initial]="editInitial()"
+  submitLabel="Save changes"
+  [busy]="editBusy()"
+  (close)="closeEdit()"
+  (submit)="saveEdit($event)" />

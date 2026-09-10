@@ -64,3 +64,12 @@ def scope_queryset(queryset, user, project_field="project_id"):
         return queryset
     ids = visible_project_ids(user)
     return queryset.filter(**{f"{project_field}__in": ids})
+
+
+class HasDepartmentAccess(BasePermission):
+    """Department desks follow the same access list returned with identity."""
+    message = "You do not have access to this department."
+
+    def has_permission(self, request, view):
+        from .navigation import visible_departments
+        return visible_departments(request.user).filter(slug=view.department_slug).exists()

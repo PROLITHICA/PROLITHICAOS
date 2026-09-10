@@ -16,6 +16,9 @@ ATTENTION = "#111111"
 
 class Invoice(RefModel):
     """An invoice as the Finance desk table shows it (INV-2071 … INV-2093)."""
+    ref_prefix = "INV"
+    ref_digits = 4
+
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
@@ -112,6 +115,9 @@ class Payment(BaseModel):
 
 class Expense(RefModel):
     """A cost awaiting approval. Approval posts it to the project's actual cost."""
+    ref_prefix = "EXP"
+    ref_digits = 3
+
 
     class State(models.TextChoices):
         PENDING = "pending", "Awaiting approval"
@@ -157,6 +163,9 @@ class Expense(RefModel):
 
 class BillableItem(RefModel):
     """Accepted delivery work waiting to be invoiced ('Ready to bill')."""
+    ref_prefix = "BILL"
+    ref_digits = 3
+
 
     class State(models.TextChoices):
         READY = "ready", "Ready to bill"

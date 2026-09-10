@@ -26,10 +26,11 @@ export interface Crumb { label: string; route?: string | unknown[]; }
   `,
   styles: [`
     .crumbs { display: flex; align-items: center; gap: 7px; font-size: 11.5px; margin-bottom: 12px; }
-    .crumb { background: transparent; border: 0; padding: 0; font: inherit; color: #3d3d3d; cursor: pointer; text-decoration: none; }
-    .crumb:hover { color: #111111; }
-    .sep { color: #c4c4c4; }
-    .current { color: #8a8a8a; }
+    .crumb { background: transparent; border: 0; padding: 0; font: inherit; color: var(--pl-color-3d3d3d); cursor: pointer; text-decoration: none; }
+    .crumb:hover { color: var(--pl-color-111111); }
+    .sep { color: var(--pl-color-c4c4c4); }
+    .current { color: var(--pl-color-8a8a8a); }
+    .crumbs { flex-wrap: wrap; row-gap: 4px; }
   `],
 })
 export class BreadcrumbsComponent {

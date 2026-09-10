@@ -2,6 +2,7 @@
 from datetime import timedelta
 from pathlib import Path
 import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -9,7 +10,16 @@ SECRET_KEY = os.environ.get(
     "PROLITHICA_SECRET_KEY", "dev-only-4b1c9f2e7a6d5c8b3e0f1a2d4c6b8e9f"
 )
 DEBUG = os.environ.get("PROLITHICA_DEBUG", "1") == "1"
-ALLOWED_HOSTS = ["*"]
+
+# The API is reached over the local network as well as from this machine.
+ALLOWED_HOSTS = os.environ.get("PROLITHICA_ALLOWED_HOSTS", "*").split(",")
+
+# Browsers on other devices post from http://<lan-ip>:4200.
+CSRF_TRUSTED_ORIGINS = [
+    origin
+    for origin in os.environ.get("PROLITHICA_TRUSTED_ORIGINS", "").split(",")
+    if origin
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -35,6 +45,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -63,12 +74,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "prolithica.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+_db_url = os.environ.get("DATABASE_URL")
+if _db_url:
+    DATABASES = {"default": dj_database_url.parse(_db_url, conn_max_age=600)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -85,6 +100,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -114,7 +130,12 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+_cors_origins = os.environ.get("PROLITHICA_CORS_ORIGINS", "")
+if _cors_origins:
+    CORS_ALLOWED_ORIGINS = [o for o in _cors_origins.split(",") if o]
+    CORS_ALLOW_ALL_ORIGINS = False
+else:
+    CORS_ALLOW_ALL_ORIGINS = True  # dev only
 CORS_ALLOW_CREDENTIALS = True
 
 # The single default password used for every seeded account.

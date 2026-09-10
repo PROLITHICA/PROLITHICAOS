@@ -541,3 +541,89 @@ export function parseMoney(input: string): number | null {
   if (suffix === 'k') return amount * 1_000;
   return amount;
 }
+
+/**
+ * Fields that name another record. The design's forms listed example names; the
+ * form offers the company's real records instead, and the picked label is
+ * turned back into the record it names before the record is created.
+ */
+export interface RelationSpec {
+  /** the field the API expects, e.g. `organisation` */
+  field: string;
+  /** which list in `GET /api/form-options/` fills the picker */
+  source: 'organisations' | 'contracts' | 'proposals' | 'opportunities' | 'projects' | 'people';
+}
+
+export const RELATION_MAP: Record<string, Record<string, RelationSpec>> = {
+  orgs: { owner: { field: 'owner', source: 'people' } },
+  opportunities: {
+    org: { field: 'organisation', source: 'organisations' },
+    owner: { field: 'owner', source: 'people' },
+  },
+  proposals: { opp: { field: 'opportunity', source: 'opportunities' } },
+  contracts: { prop: { field: 'proposal', source: 'proposals' } },
+  projects: {
+    organisation: { field: 'organisation', source: 'organisations' },
+    contract: { field: 'contract', source: 'contracts' },
+    manager: { field: 'manager', source: 'people' },
+  },
+  requirements: {
+    project: { field: 'project', source: 'projects' },
+    owner: { field: 'owner', source: 'people' },
+  },
+  changes: { project: { field: 'project', source: 'projects' } },
+  support: {
+    org: { field: 'organisation', source: 'organisations' },
+    system: { field: 'project', source: 'projects' },
+    owner: { field: 'owner', source: 'people' },
+  },
+  milestonesAll: { project: { field: 'project', source: 'projects' } },
+};
+
+/** Every picker the create forms can draw on. */
+export interface FormOptions {
+  organisations: OptionRow[];
+  contracts: OptionRow[];
+  proposals: OptionRow[];
+  opportunities: OptionRow[];
+  projects: OptionRow[];
+  people: OptionRow[];
+  stages: string[];
+  priorities: string[];
+  severities: string[];
+  sources: string[];
+}
+
+export interface OptionRow {
+  value: string;
+  label: string;
+}
+
+/** "30th Aug 2026", "30 Sep 2026", "2026-09-30" → an ISO date the API accepts. */
+export function parseDate(input: string): string | null {
+  const raw = String(input ?? '').trim();
+  if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const cleaned = raw.replace(/(\d+)(st|nd|rd|th)/gi, '$1');
+  const parsed = new Date(cleaned);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${parsed.getFullYear()}-${month}-${day}`;
+}
+
+/** Keys the design writes as a date. */
+export const DATE_KEYS = new Set(['close', 'valid', 'start', 'planned', 'due']);
+
+/**
+ * The name inside a picker label.
+ *
+ * A record reads "ORG-008 · National Treasury" — the name is what follows the
+ * reference. A person only carries a suffix when two share a name
+ * ("Newton Brian · newton@…"), and there the name is what comes first.
+ */
+export function plainName(label: string): string {
+  const parts = String(label ?? '').split(' · ');
+  if (parts.length < 2) return label ?? '';
+  return /^[A-Z]{2,5}-\d+$/.test(parts[0]) ? parts.slice(1).join(' · ') : parts[0];
+}

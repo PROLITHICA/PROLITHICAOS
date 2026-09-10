@@ -19,8 +19,9 @@ import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.com
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton.component';
 import { StatTileComponent } from '../../shared/ui/stat-tile/stat-tile.component';
 import {
-  ApiRecord, DESIGN_FORMS, FIELD_MAP, FormConfig, MONEY_KEYS, RecordViewDef,
-  parseMoney, resolveView,
+  ApiRecord, DATE_KEYS, DESIGN_FORMS, FIELD_MAP, FormConfig, FormOptions, MONEY_KEYS,
+  OptionRow, RecordViewDef, RELATION_MAP,
+  parseDate, parseMoney, plainName, resolveView,
 } from './record-views';
 
 type Status = 'loading' | 'ready' | 'error' | 'forbidden' | 'unknown';
@@ -78,6 +79,7 @@ export class RecordListComponent {
   /** modal state */
   readonly modalKind = signal<'create' | 'export' | null>(null);
   readonly form = signal<FormConfig | null>(null);
+  readonly options = signal<FormOptions | null>(null);
   readonly submitting = signal<boolean>(false);
   readonly formError = signal<string>('');
 
@@ -263,8 +265,57 @@ export class RecordListComponent {
     this.api.get<FormConfig>(`/forms/${key}/`).subscribe({
       next: (config) => {
         if (this.modalKind() && config?.fields?.length) this.form.set(config);
+        this.applyOptions(key);
       },
-      error: () => { /* the bundled design config stands in */ },
+      error: () => this.applyOptions(key),
+    });
+    this.loadOptions(key);
+  }
+
+  /** The company's own records, loaded once and reused by every form. */
+  private loadOptions(key: string): void {
+    if (this.options()) {
+      this.applyOptions(key);
+      return;
+    }
+    this.api.get<FormOptions>('/form-options/').subscribe({
+      next: (options) => {
+        this.options.set(options);
+        this.applyOptions(key);
+      },
+      error: () => { /* the design's static form stands in */ },
+    });
+  }
+
+  /**
+   * Replaces the form's example names with the records they stand for, so a
+   * picked option is a real organisation, contract, project or person.
+   */
+  private applyOptions(key: string): void {
+    const options = this.options();
+    const config = this.form();
+    const relations = RELATION_MAP[key];
+    if (!options || !config || !relations) return;
+
+    const lists: Record<string, OptionRow[]> = {
+      organisations: options.organisations, contracts: options.contracts,
+      proposals: options.proposals, opportunities: options.opportunities,
+      projects: options.projects, people: options.people,
+    };
+
+    this.form.set({
+      ...config,
+      fields: config.fields.map((field) => {
+        const relation = relations[field.k];
+        if (!relation) return field;
+        const rows = lists[relation.source] ?? [];
+        if (!rows.length) return field;
+        const optional = /optional/i.test(field.l);
+        return {
+          ...field,
+          o: optional ? ['None', ...rows.map((row) => row.label)] : rows.map((row) => row.label),
+        };
+      }),
     });
   }
 
@@ -313,15 +364,57 @@ export class RecordListComponent {
       return;
     }
 
-    this.api.post<{ toast?: string }>(def.endpoint, this.payload(def, values)).subscribe({
+    const body = this.withRelations(def, this.payload(def, values), values);
+
+    this.api.post<{ toast?: string; ref?: string }>(def.endpoint, body).subscribe({
       next: (response) => {
         this.toast.show(response?.toast || this.createdToast());
         this.closeForm();
+        // A new project opens on its own screen — that is where the work continues.
+        if (def.formKey === 'projects' && response?.ref) {
+          void this.router.navigate(['/projects', response.ref]);
+          return;
+        }
         this.page.set(1);
         this.reload();
       },
       error: (error: unknown) => this.failed(error),
     });
+  }
+
+  /** Turns each picked label back into the record it names. */
+  private withRelations(
+    def: RecordViewDef,
+    body: Record<string, unknown>,
+    values: Record<string, string>,
+  ): Record<string, unknown> {
+    const options = this.options();
+    const relations = RELATION_MAP[def.formKey];
+    if (!options || !relations) return body;
+
+    const lists: Record<string, OptionRow[]> = {
+      organisations: options.organisations, contracts: options.contracts,
+      proposals: options.proposals, opportunities: options.opportunities,
+      projects: options.projects, people: options.people,
+    };
+
+    const map = FIELD_MAP[def.formKey] ?? {};
+    for (const [formKey, relation] of Object.entries(relations)) {
+      const picked = values[formKey];
+      if (!picked || picked === 'None') {
+        delete body[formKey];
+        continue;
+      }
+      const row = (lists[relation.source] ?? []).find((option) => option.label === picked);
+      if (!row) continue;
+
+      const alias = map[formKey];
+      if (alias) body[alias] = plainName(row.label);
+      // The form key often *is* the API field, so drop the label only when it is not.
+      if (formKey !== relation.field) delete body[formKey];
+      body[relation.field] = row.value;
+    }
+    return body;
   }
 
   /** Design keys plus their model-field aliases; money strings become numbers. */
@@ -331,9 +424,11 @@ export class RecordListComponent {
     for (const [key, value] of Object.entries(values)) {
       if (value === '' || value === null || value === undefined) continue;
       const money = MONEY_KEYS.has(key) ? parseMoney(value) : null;
-      body[key] = money ?? value;
+      const date = DATE_KEYS.has(key) ? parseDate(value) : null;
+      const resolved = money ?? date ?? value;
+      body[key] = resolved;
       const alias = map[key];
-      if (alias) body[alias] = money ?? value;
+      if (alias) body[alias] = resolved;
     }
     return body;
   }

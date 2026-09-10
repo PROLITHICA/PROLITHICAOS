@@ -3,7 +3,10 @@
 Every list also returns the design's ``view`` block so the generic record list
 renders the same title, subtitle, stats and columns as the HTML.
 """
+from apps.accounts.permissions import HasDepartmentAccess
+
 from datetime import date
+from decimal import Decimal
 
 from django.db.models import Sum
 from django.utils import timezone
@@ -439,7 +442,8 @@ def receivables_ageing(user):
 class FinanceDashboardView(APIView):
     """``GET /api/dashboard/finance/`` — the whole Finance desk."""
 
-    permission_classes = APIView.permission_classes + [HasAnyAreaPermission]
+    permission_classes = APIView.permission_classes + [HasAnyAreaPermission] + [HasDepartmentAccess]
+    department_slug = "finance"
     read_areas = FINANCE_READ
 
     def get(self, request):
@@ -551,3 +555,114 @@ class FinanceKpiView(APIView):
             "capacity": CapacityLineSerializer(
                 CapacityLine.objects.all(), many=True).data,
         })
+
+
+class BillingCycleView(APIView):
+    """``GET /api/finance/billing-cycle/`` — where every pound of work sits.
+
+    Delivery becomes cash in a fixed order: work is accepted, the milestone
+    becomes billable, an invoice is raised, it is sent, then it is paid. This
+    shows how much is standing at each step, so the block is obvious.
+    """
+
+    permission_classes = APIView.permission_classes + [HasAnyAreaPermission]
+    read_areas = FINANCE_READ
+
+    def get(self, request):
+        user = request.user
+        billable = BillableItem.objects.all()
+        invoices = Invoice.objects.all()
+
+        def total(rows, field):
+            return sum((getattr(row, field) or Decimal("0")) for row in rows)
+
+        ready = [row for row in billable if row.state == "ready"]
+        blocked = [row for row in billable if row.state == "blocked"]
+        scheduled = [row for row in billable if row.state == "scheduled"]
+        draft = [i for i in invoices if i.status_label == "Draft"]
+        sent = [i for i in invoices if i.status_label in ("Sent", "Part paid")]
+        overdue = [i for i in invoices if "Overdue" in (i.status_label or "")]
+        paid = [i for i in invoices if i.status_label == "Paid"]
+
+        stages = [
+            {"key": "blocked", "label": "Blocked", "count": len(blocked),
+             "value": masked_money(user, total(blocked, "value")),
+             "note": "Acceptance or pricing is outstanding", "tag_class": "tag-accent-2"},
+            {"key": "ready", "label": "Ready to bill", "count": len(ready),
+             "value": masked_money(user, total(ready, "value")),
+             "note": "Accepted work with no invoice yet", "tag_class": "tag-accent-2"},
+            {"key": "scheduled", "label": "Scheduled", "count": len(scheduled),
+             "value": masked_money(user, total(scheduled, "value")),
+             "note": "Billing dated in the future", "tag_class": "tag-outline"},
+            {"key": "draft", "label": "Draft invoices", "count": len(draft),
+             "value": masked_money(user, total(draft, "amount")),
+             "note": "Raised but not yet sent", "tag_class": "tag-neutral"},
+            {"key": "sent", "label": "Sent, awaiting payment", "count": len(sent),
+             "value": masked_money(user, total(sent, "outstanding")),
+             "note": "With the client, inside terms", "tag_class": "tag-outline"},
+            {"key": "overdue", "label": "Overdue", "count": len(overdue),
+             "value": masked_money(user, total(overdue, "outstanding")),
+             "note": "Past terms and chasing", "tag_class": "tag-accent-2"},
+            {"key": "paid", "label": "Paid this year", "count": len(paid),
+             "value": masked_money(user, total(paid, "amount")),
+             "note": "Reconciled to the project and the client", "tag_class": "tag-accent"},
+        ]
+        return Response({
+            "title": "Billing cycle",
+            "subtitle": "Delivery becomes cash in one direction. This is where it is standing.",
+            "stages": stages,
+            "blocked_rows": [
+                {"title": row.name, "meta": row.meta,
+                 "value": masked_money(user, row.value), "tag_class": "tag-accent-2"}
+                for row in blocked
+            ],
+        })
+
+
+class ProjectBreakdownView(APIView):
+    """``GET /api/finance/breakdown/`` — contract against cost, project by project."""
+
+    permission_classes = APIView.permission_classes + [HasAnyAreaPermission]
+    read_areas = PROJECT_MONEY
+
+    def get(self, request):
+        user = request.user
+        rows = []
+        for snapshot in ProfitabilitySnapshot.objects.all():
+            contract = snapshot.contract_value or Decimal("0")
+            cost = snapshot.cost or Decimal("0")
+            invoiced = snapshot.invoiced or Decimal("0")
+            paid = snapshot.paid or Decimal("0")
+            unbilled = max(Decimal("0"), contract - invoiced)
+            rows.append({
+                "project": snapshot.project_label,
+                "ref": getattr(snapshot.project, "ref", ""),
+                "contract": masked_money(user, contract),
+                "invoiced": masked_money(user, invoiced),
+                "paid": masked_money(user, paid),
+                "cost": masked_money(user, cost),
+                "unbilled": masked_money(user, unbilled),
+                "margin_now": f"{snapshot.margin_now}%",
+                "forecast": snapshot.forecast_label,
+                "tag_class": snapshot.tag_class,
+                "bars": [
+                    {"label": "Invoiced", "width": _share(invoiced, contract), "tone": "#111"},
+                    {"label": "Paid", "width": _share(paid, contract), "tone": "#3d3d3d"},
+                    {"label": "Cost", "width": _share(cost, contract), "tone": "#8f8f8f"},
+                ],
+                "route": f"/projects/{getattr(snapshot.project, 'ref', '')}",
+            })
+        return Response({
+            "title": "Project breakdown",
+            "subtitle": "What each project was sold for, what it has cost, and what is "
+                        "still to bill.",
+            "cols": ["Project", "Contract", "Invoiced", "Paid", "Cost", "Still to bill",
+                     "Margin now", "Forecast"],
+            "rows": rows,
+        })
+
+
+def _share(part, whole):
+    if not whole:
+        return "0%"
+    return f"{min(100, round(float(part) / float(whole) * 100))}%"

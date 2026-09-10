@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
@@ -66,45 +67,78 @@ interface ProfileUser extends User { password_changed_at?: string | null; }
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [FieldComponent, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, FieldComponent, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',
   styles: [`
-    .panel { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 22px; margin-top: 14px; max-width: 760px; }
+    .panel {
+      border: 0; background: var(--pl-pane);
+      border-radius: var(--pl-radius-card); box-shadow: var(--pl-lift-1);
+      padding: var(--pl-pane-pad); margin-top: var(--pl-pane-gap); max-width: 760px;
+    }
     .tab-rail { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 20px; }
-    .tab { border: 1px dotted #b5b5b5; background: #fff; color: #333; border-radius: 999px; padding: 7px 15px; font: inherit; font-size: 12px; cursor: pointer; }
-    .tab:hover { border-color: #111; }
-    .tab-note { font-size: 11.5px; color: #8a8a8a; margin-top: 10px; }
+    .tab { border: 1px dotted var(--pl-color-b5b5b5); background: var(--pl-color-ffffff); color: var(--pl-color-333333); border-radius: 999px; padding: 7px 15px; font: inherit; font-size: 12px; cursor: pointer; }
+    .tab:hover { border-color: var(--pl-color-111111); }
+    .tab-note { font-size: 11.5px; color: var(--pl-color-8a8a8a); margin-top: 10px; }
     .panel h4 { margin: 0 0 12px; font-size: 16px; }
     .grid-240 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
     .grid-220 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-    .note { font-size: 11.5px; color: #8a8a8a; }
+    .note { font-size: 11.5px; color: var(--pl-color-8a8a8a); }
     .row-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
-    .toggle-row { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px dotted #dcdcdc; }
-    .box { width: 15px; height: 15px; padding: 0; border: 1.5px dotted #111; border-radius: 5px; cursor: pointer; }
+    .toggle-row { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--pl-rule); }
+    .toggle-row:last-child { border-bottom: 0; }
+    .box { width: 15px; height: 15px; padding: 0; border: 1.5px dotted var(--pl-color-111111); border-radius: 5px; cursor: pointer; }
     .row-title { font-size: 13px; }
-    .row-meta { font-size: 11px; color: #9a9a9a; }
-    .session-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px dotted #dcdcdc; }
-    .session-cta { border-color: #b5b5b5; font-size: 12px; padding: 5px 13px; white-space: nowrap; }
-    .perm-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 11px 0; border-bottom: 1px dotted #dcdcdc; }
+    .row-meta { font-size: 11px; color: var(--pl-color-9a9a9a); }
+    .session-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--pl-rule); }
+    .session-row:last-child { border-bottom: 0; }
+    .session-cta { border-color: var(--pl-color-b5b5b5); font-size: 12px; padding: 5px 13px; white-space: nowrap; }
+    .perm-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--pl-rule); }
+    .perm-row:last-child { border-bottom: 0; }
     .pills { display: flex; flex-wrap: wrap; gap: 7px; }
-    .pill { border: 1px dotted #b5b5b5; background: #fff; color: #333; border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 11.5px; cursor: pointer; }
-    .pill:hover { border-color: #111; }
+    .pill { border: 1px dotted var(--pl-color-b5b5b5); background: var(--pl-color-ffffff); color: var(--pl-color-333333); border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 11.5px; cursor: pointer; }
+    .pill:hover { border-color: var(--pl-color-111111); }
     .strength { margin-top: 12px; max-width: 300px; }
-    .strength-head { display: flex; justify-content: space-between; font-size: 11px; color: #6b6b6b; }
-    .strength-track { display: block; height: 5px; background: #f0f0f0; border-radius: 3px; margin-top: 5px; overflow: hidden; }
-    .strength-fill { display: block; height: 5px; background: #111; }
-    .avatar { width: 54px; height: 54px; border-radius: 999px; background: #111; color: #fff; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
+    .strength-head { display: flex; justify-content: space-between; font-size: 11px; color: var(--pl-color-6b6b6b); }
+    .strength-track { display: block; height: 5px; background: var(--pl-color-f0f0f0); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+    .strength-fill { display: block; height: 5px; background: var(--pl-color-111111); }
+    .avatar { width: 54px; height: 54px; border-radius: 999px; background: var(--pl-color-111111); color: var(--pl-color-ffffff); font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
     .ident { display: flex; align-items: center; gap: 16px; }
     .ident h1 { font-size: 26px; margin: 0 0 3px; }
-    .ident-meta { font-size: 12.5px; color: #8a8a8a; }
-    .preview { border: 1px dotted #dcdcdc; border-radius: 14px; background: #fafafa; padding: 12px 14px; margin-top: 16px; }
-    .preview-kicker { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #9a9a9a; }
+    .ident-meta { font-size: 12.5px; color: var(--pl-color-8a8a8a); }
+    .preview { border: 0; box-shadow: none; border-radius: 12px; background: var(--pl-pane-sunken); padding: 14px 16px; margin-top: 18px; }
+    .preview-kicker { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pl-color-9a9a9a); }
     .preview-body { display: flex; align-items: center; gap: 11px; margin-top: 8px; }
-    .preview-avatar { width: 32px; height: 32px; border-radius: 999px; background: #111; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
+    .preview-avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--pl-color-111111); color: var(--pl-color-ffffff); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
     .preview-name { font-size: 13px; font-weight: 500; }
-    .preview-title { font-size: 11px; color: #9a9a9a; }
+    .preview-title { font-size: 11px; color: var(--pl-color-9a9a9a); }
     .skel-stack { display: flex; flex-direction: column; gap: 12px; }
+    /* ── Responsive ────────────────────────────────────────────────────────
+       Phone keeps all six tabs visible as a two-up stacked pill list rather
+       than a horizontal scroller, so no tab can hide off the edge. */
+    @media (max-width: 900px) {
+      .panel { max-width: none; }
+      .strength { max-width: none; }
+    }
+    @media (max-width: 560px) {
+      .panel { padding: 16px; }
+      .tab-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .tab { width: 100%; min-height: 42px; padding: 9px 10px; font-size: 12.5px; }
+      .grid-240, .grid-220 { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .ident { gap: 12px; }
+      .ident h1 { font-size: 21px; }
+      .avatar { width: 44px; height: 44px; font-size: 15px; }
+      .row-actions .btn { flex: 1 1 100%; min-height: 42px; }
+      .session-row, .perm-row { grid-template-columns: minmax(0, 1fr); gap: 9px; align-items: start; }
+      .session-cta { justify-self: start; min-height: 40px; padding: 8px 14px; }
+      .toggle-row { grid-template-columns: 22px minmax(0, 1fr); gap: 10px; }
+      .toggle-row > :last-child { grid-column: 2; justify-self: start; margin-top: 2px; }
+      .perm-row > :last-child { justify-self: start; }
+      /* Keeps the 15px checkbox visually identical while giving it a 41px target. */
+      .box { position: relative; }
+      .box::after { content: ''; position: absolute; inset: -13px; }
+      .pill { min-height: 40px; display: inline-flex; align-items: center; }
+    }
   `],
 })
 export class ProfileComponent {

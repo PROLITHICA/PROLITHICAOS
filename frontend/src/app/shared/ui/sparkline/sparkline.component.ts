@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 /**
@@ -7,20 +8,21 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 @Component({
   selector: 'app-sparkline',
   standalone: true,
+  imports: [ThemeColorPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <svg viewBox="0 0 200 34" width="100%" height="34" aria-hidden="true">
       @if (baseline()) {
-        <polyline [attr.points]="baselinePoints()" fill="none" stroke="#c9c9c9" stroke-width="1" stroke-dasharray="3 3" />
+        <polyline [attr.points]="baselinePoints()" fill="none" stroke="var(--pl-color-c9c9c9)" stroke-width="1" stroke-dasharray="3 3" />
       }
-      <polyline [attr.points]="linePoints()" fill="none" [attr.stroke]="color()" stroke-width="1.6" />
+      <polyline [attr.points]="linePoints()" fill="none" [attr.stroke]="(color()) | themeColor" stroke-width="1.6" />
     </svg>
   `,
   styles: [`:host { display: block; }`],
 })
 export class SparklineComponent {
   readonly values = input<number[]>([]);
-  readonly color = input<string>('#111');
+  readonly color = input<string>('var(--pl-color-111111)');
   /** draws the dotted comparison line from the design */
   readonly baseline = input<boolean>(false);
 

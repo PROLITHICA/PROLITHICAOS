@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, catchError, filter, switchMap, take, throwError } from 'rxjs';
 
 import { AuthService } from './auth.service';
+import { deployment } from './deployment';
 
 let refreshing = false;
 const refreshed = new BehaviorSubject<string | null>(null);
@@ -21,6 +22,9 @@ export const tokenInterceptor: HttpInterceptorFn = (
   const auth = inject(AuthService);
   const router = inject(Router);
   const http = inject(HttpClient);
+  // Only our API requests receive authentication or the configured API origin.
+  if (!request.url.startsWith('/api/')) return next(request);
+  if (deployment.apiOrigin) request = request.clone({ url: deployment.apiOrigin + request.url });
 
   const isAuthCall = request.url.includes('/api/auth/login/')
     || request.url.includes('/api/auth/refresh/')

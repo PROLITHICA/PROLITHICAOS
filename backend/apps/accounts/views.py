@@ -179,6 +179,10 @@ class PreferencesView(APIView):
 
 
 class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
+    def get_queryset(self):
+        from .navigation import visible_departments
+        return visible_departments(self.request.user)
+
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
 

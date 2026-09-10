@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.test import RequestFactory
 from rest_framework.test import APITestCase
 
-from apps.accounts.models import AuditEvent, Role, RolePermission, User
+from apps.accounts.models import AuditEvent, Department, Role, RolePermission, User
 
 from . import seed
 from .models import BillableItem, Expense, Invoice, ProfitabilitySnapshot
@@ -27,6 +27,7 @@ class FinanceTestCase(APITestCase):
         cls.finance = User.objects.create_user(
             email="franklin.karanja@prolithica.com", password="x",
             display_name="Franklin Karanja",
+            department=Department.objects.create(slug="finance", label="Finance", initials="FI", home_view="finance"),
             role=make_role("finance", {"finance": "full", "contracts": "full",
                                        "delivery": "read", "audit": "read"}),
         )

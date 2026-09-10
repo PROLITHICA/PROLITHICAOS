@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -14,6 +15,8 @@ import { SectionCardComponent } from '../../shared/ui/section-card/section-card.
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton.component';
 import { SparklineComponent } from '../../shared/ui/sparkline/sparkline.component';
 import { TagComponent } from '../../shared/ui/tag/tag.component';
+import { DayGlanceComponent } from '../my-day/day-glance/day-glance.component';
+import { MyDayService } from '../my-day/my-day.service';
 import {
   AttentionItem,
   CommandKpi,
@@ -29,15 +32,15 @@ import {
 
 /** Capacity bar tones — the design's `mag` / `ink` / `cy`. */
 const CAPACITY_TONES: Record<string, string> = {
-  attention: '#111111', ink: '#111111', mid: '#3d3d3d',
+  attention: 'var(--pl-color-111111)', ink: 'var(--pl-color-111111)', mid: 'var(--pl-color-3d3d3d)',
 };
 
 /** The Command Centre: the executive's first screen. */
 @Component({
   selector: 'app-command',
   standalone: true,
-  imports: [
-    HasPermDirective, KpiCardComponent, BarChartComponent, SparklineComponent,
+  imports: [ThemeColorPipe,
+    HasPermDirective, DayGlanceComponent, KpiCardComponent, BarChartComponent, SparklineComponent,
     ProgressBarComponent, SectionCardComponent,
     TagComponent, SkeletonComponent, EmptyStateComponent,
   ],
@@ -51,6 +54,8 @@ export class CommandComponent {
   private readonly toast = inject(ToastService);
   private readonly auth = inject(AuthService);
   readonly perms = inject(PermissionService);
+  /** The day strip greets the executive; the head only does so if it cannot. */
+  readonly day = inject(MyDayService);
 
   readonly data = signal<CommandPayload | null>(null);
   readonly loading = signal(true);
@@ -107,7 +112,7 @@ export class CommandComponent {
 
   // ── delivery rows ────────────────────────────────────────────────────
   budgetColour(row: DeliveryRow): string {
-    return row.tag_class === 'tag-accent-2' ? '#111111' : '#3d3d3d';
+    return row.tag_class === 'tag-accent-2' ? 'var(--pl-color-111111)' : 'var(--pl-color-3d3d3d)';
   }
 
   progressCaption(row: DeliveryRow): string {
@@ -115,7 +120,7 @@ export class CommandComponent {
   }
 
   capacityColour(row: { tone: string }): string {
-    return CAPACITY_TONES[row.tone] ?? '#111111';
+    return CAPACITY_TONES[row.tone] ?? 'var(--pl-color-111111)';
   }
 
   // ── navigation and actions ───────────────────────────────────────────

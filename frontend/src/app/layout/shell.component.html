@@ -1,25 +1,12 @@
-<div class="shell">
+<div class="shell" [class.nav-open]="navOpen()">
 
-  <aside class="sidebar">
+  <!-- Backdrop for the off-canvas sidebar on small screens. -->
+  <button type="button" class="scrim" aria-label="Close navigation" (click)="closeNav()"></button>
+
+  <aside class="sidebar" [attr.aria-hidden]="null">
+    <button type="button" class="nav-close" aria-label="Close navigation" (click)="closeNav()">&#215;</button>
     <div class="brand-wrap">
       <div class="brand wordmark">Prolithica</div>
-    </div>
-
-    <div>
-      <div class="section-kicker">Department</div>
-      @for (dept of departments(); track dept.id) {
-        <a class="dept" [class.active]="dept.slug === activeDept()" [routerLink]="departmentRoute(dept)">
-          <span class="chip"
-                [style.background]="dept.slug === activeDept() ? '#111' : '#f0f0f0'"
-                [style.color]="dept.slug === activeDept() ? '#fff' : '#6b6b6b'">{{ dept.initials }}</span>
-          <span class="dept-body">
-            <span class="dept-label"
-                  [style.font-weight]="dept.slug === activeDept() ? 600 : 400"
-                  [style.color]="dept.slug === activeDept() ? '#111' : '#3d3d3d'">{{ dept.label }}</span>
-            <span class="dept-person">{{ dept.head?.name || '' }}</span>
-          </span>
-        </a>
-      }
     </div>
 
     <div class="nav-groups">
@@ -27,17 +14,37 @@
         <div>
           <div class="section-kicker">{{ group.heading }}</div>
           @for (item of group.items; track item.key) {
-            <a class="nav-item" [routerLink]="item.route" routerLinkActive="active"
+            <a class="nav-item" (click)="closeNav()" [routerLink]="item.route" routerLinkActive="active"
                [routerLinkActiveOptions]="{ exact: false }">
               <span class="nav-label">{{ item.label }}</span>
-              <span class="nav-count">{{ item.count }}</span>
+              @if (item.count) { <span class="nav-count">{{ item.count }}</span> }
             </a>
           }
         </div>
       }
     </div>
 
+    @if (departments().length) {
+    <div>
+      <div class="section-kicker">Department</div>
+      @for (dept of departments(); track dept.id) {
+        <a class="dept" (click)="closeNav()" [class.active]="dept.slug === activeDept()" [routerLink]="departmentRoute(dept)">
+          <span class="chip"
+                [style.background]="(dept.slug === activeDept() ? 'var(--pl-color-111111)' : 'var(--pl-color-f0f0f0)') | themeColor"
+                [style.color]="(dept.slug === activeDept() ? 'var(--pl-color-ffffff)' : 'var(--pl-color-6b6b6b)') | themeColor">{{ dept.initials }}</span>
+          <span class="dept-body">
+            <span class="dept-label"
+                  [style.font-weight]="dept.slug === activeDept() ? 600 : 400"
+                  [style.color]="(dept.slug === activeDept() ? 'var(--pl-color-111111)' : 'var(--pl-color-3d3d3d)') | themeColor">{{ dept.label }}</span>
+          </span>
+        </a>
+      }
+    </div>
+
+    }
+
     <div class="signed-in-wrap">
+      <button type="button" class="btn btn-secondary theme-toggle" (click)="theme.toggle()" [attr.aria-pressed]="theme.dark()" aria-label="Dark mode">{{ theme.dark() ? 'Light mode' : 'Dark mode' }}</button>
       <div class="signed-in">
         <div class="section-kicker plain">Signed in</div>
         <div class="signed-name">{{ person() }}</div>
@@ -49,6 +56,10 @@
   <main class="main">
 
     <div class="topbar">
+      <button type="button" class="nav-toggle" aria-label="Open navigation"
+              [attr.aria-expanded]="navOpen()" (click)="toggleNav()">
+        <span class="bars" aria-hidden="true"></span>
+      </button>
       <div class="page-title">{{ pageTitle() }}</div>
       <div class="search">
         <input class="input search-input"
@@ -58,8 +69,14 @@
         <span class="kbd">&#8984;K</span>
       </div>
       <div class="topbar-right">
-        <a class="notif" routerLink="/notifications">Notifications
-          <span class="badge">{{ notifCount() }}</span>
+        <span class="presence" role="status" [class.is-active]="presence.label() === 'Active · Online'">
+          <span class="presence-dot" aria-hidden="true"></span>{{ presence.label() }}
+        </span>
+        <a class="notif" routerLink="/notifications" [attr.aria-label]="'Notifications, ' + notifCount() + ' unread'" title="Notifications">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" />
+          </svg>
+          @if (notifCount() > 0) { <span class="badge">{{ notifCount() }}</span> }
         </a>
         <span class="identity">
           <a class="who" routerLink="/profile">

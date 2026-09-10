@@ -10,52 +10,52 @@
     [note]="error() || 'No project has reached its closure checklist. A project does not disappear, it closes or becomes support.'" />
 } @else {
   @if (closure(); as c) {
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+    <div class="closure-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
       <div>
-        <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#9a9a9a">{{ kicker() }}</div>
+        <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--pl-color-9a9a9a)">{{ kicker() }}</div>
         <h1 style="font-size:28px;margin:5px 0 4px">Project closure</h1>
-        <div style="font-size:12.5px;color:#8a8a8a">{{ c.progress_label }} — a project does not disappear, it closes or becomes support.</div>
+        <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">{{ c.progress_label }} — a project does not disappear, it closes or becomes support.</div>
       </div>
-      <button type="button" class="btn btn-primary" (click)="closeProject()" [disabled]="closing()"
+      <button type="button" class="btn btn-primary closure-cta" (click)="closeProject()" [disabled]="closing()"
               style="white-space:nowrap;flex:none">{{ c.cta }}</button>
     </div>
 
     <div class="closure-row">
       <!-- ── checklist ────────────────────────────────────────────── -->
-      <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+      <div class="pane">
         <h4 style="margin:0 0 8px;font-size:15px">Closure checklist</h4>
         @for (i of items(); track i.id) {
-          <div style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:start;padding:11px 0;border-bottom:1px dotted #dcdcdc">
+          <div class="check-row row-rule" style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 0">
             <button type="button" class="tick" (click)="toggle(i)" [disabled]="busy() === i.id"
                     [attr.aria-label]="'toggle ' + i.text" [attr.aria-pressed]="i.confirmed"
-                    [style.background]="i.fill"></button>
+                    [style.background]="(i.fill) | themeColor"></button>
             <div>
-              <div style="font-size:13px" [style.color]="i.col" [style.text-decoration]="i.strike">{{ i.text }}</div>
-              <div style="font-size:11px;color:#9a9a9a">{{ i.meta }}</div>
+              <div style="font-size:13px" [style.color]="(i.col) | themeColor" [style.text-decoration]="i.strike">{{ i.text }}</div>
+              <div style="font-size:11px;color:var(--pl-color-9a9a9a)">{{ i.meta }}</div>
             </div>
             <span class="tag" [class]="'tag ' + i.tag_class">{{ i.owner_name }}</span>
           </div>
         } @empty {
-          <div style="font-size:12.5px;color:#8a8a8a;padding:12px 0">This closure has no conditions recorded against it.</div>
+          <div style="font-size:12.5px;color:var(--pl-color-8a8a8a);padding:12px 0">This closure has no conditions recorded against it.</div>
         }
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="col">
         <!-- ── retrospective ──────────────────────────────────────── -->
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="pane">
           <h4 style="margin:0 0 8px;font-size:15px">Retrospective</h4>
           @for (r of retro(); track $index) {
-            <div style="padding:9px 0;border-bottom:1px dotted #dcdcdc">
-              <div style="font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9a9a9a">{{ r.label }}</div>
+            <div class="row-rule" style="padding:11px 0">
+              <div style="font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--pl-color-9a9a9a)">{{ r.label }}</div>
               <div style="font-size:12.5px;margin-top:3px">{{ r.value }}</div>
             </div>
           }
         </div>
 
         <!-- ── after closure ──────────────────────────────────────── -->
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="aside-note">
           <h4 style="margin:0 0 6px;font-size:15px">After closure</h4>
-          <div style="font-size:12.5px;color:#4a4a4a">{{ c.after_closure }}</div>
+          <div style="font-size:12.5px;color:var(--pl-color-4a4a4a)">{{ c.after_closure }}</div>
         </div>
       </div>
     </div>

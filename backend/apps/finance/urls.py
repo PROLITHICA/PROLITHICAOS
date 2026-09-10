@@ -13,6 +13,8 @@ router.register("profitability", views.ProfitabilityViewSet, basename="profitabi
 router.register("capacity", views.CapacityViewSet, basename="capacity")
 
 urlpatterns = [
+    path("finance/billing-cycle/", views.BillingCycleView.as_view(), name="billing-cycle"),
+    path("finance/breakdown/", views.ProjectBreakdownView.as_view(), name="breakdown"),
     path("dashboard/finance/", views.FinanceDashboardView.as_view(), name="finance-desk"),
     path("finance/kpis/", views.FinanceKpiView.as_view(), name="finance-kpis"),
     path("", include(router.urls)),

@@ -1,14 +1,29 @@
-.stack { display: flex; flex-direction: column; gap: 14px; }
-.skel-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; }
+:host { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+
+.stack { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+.col { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+.skel-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--pl-pane-gap); }
 
 .rnd-row {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 14px;
-  margin-top: 20px;
+  gap: var(--pl-pane-gap);
   align-items: start;
 }
 
+
+/* List rows are separated, not boxed: the rule between them disappears at
+   the foot of the list so the pane closes on whitespace. */
+.row-rule { border-bottom: 1px solid var(--pl-rule); }
+.row-rule:last-child { border-bottom: 0; }
+
 @media (max-width: 1000px) {
   .rnd-row, .skel-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── responsive ─────────────────────────────────────────────────────────
+   The discovery funnel is drawn on a 340-unit canvas and scales cleanly;
+   it only needs to keep its aspect ratio rather than the fixed height. */
+@media (max-width: 900px) {
+  .rnd-row svg { max-width: 100%; height: auto; }
 }

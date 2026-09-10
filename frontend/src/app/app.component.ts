@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { ThemeService } from './core/theme.service';
 import { AuthService } from './core/auth.service';
 import { BootScreenComponent } from './layout/boot-screen.component';
 
@@ -19,6 +20,7 @@ import { BootScreenComponent } from './layout/boot-screen.component';
   `,
 })
 export class AppComponent {
+  private readonly theme = inject(ThemeService);
   private readonly auth = inject(AuthService);
 
   readonly booting = signal(true);

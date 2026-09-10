@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { of, switchMap } from 'rxjs';
@@ -38,7 +39,7 @@ const DEFAULT_ORG = 'ORG-006';
 @Component({
   selector: 'app-lifecycle',
   standalone: true,
-  imports: [SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './lifecycle.component.html',
   styleUrl: './lifecycle.component.css',
@@ -58,9 +59,9 @@ export class LifecycleComponent {
     this.stages().map((stage, index) => ({
       ...stage,
       index,
-      bg: index === this.active() ? '#f7f7f7' : '#fff',
-      rule: index === this.active() ? '#3d3d3d' : '#e7e7e7',
-      col: index === this.active() ? '#111' : '#333',
+      bg: index === this.active() ? 'var(--pl-color-f7f7f7)' : 'var(--pl-color-ffffff)',
+      rule: index === this.active() ? 'var(--pl-color-3d3d3d)' : 'var(--pl-color-e7e7e7)',
+      col: index === this.active() ? 'var(--pl-color-111111)' : 'var(--pl-color-333333)',
     })),
   );
 

@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -31,7 +32,7 @@ export interface OrganisationDetail {
 @Component({
   selector: 'app-organisation',
   standalone: true,
-  imports: [RouterLink, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, RouterLink, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './organisation.component.html',
   styleUrl: './organisation.component.css',

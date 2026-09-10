@@ -5,6 +5,7 @@ export * from './kpi-card/kpi-card.component';
 export * from './data-table/data-table.component';
 export * from './tag/tag.component';
 export * from './modal/modal.component';
+export * from './confirm/confirm.component';
 export * from './toast-host/toast-host.component';
 export * from './skeleton/skeleton.component';
 export * from './breadcrumbs/breadcrumbs.component';

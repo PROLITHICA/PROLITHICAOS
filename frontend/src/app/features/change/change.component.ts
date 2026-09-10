@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
@@ -42,7 +43,7 @@ const REJECT_FIELDS: FieldSpec[] = [
 @Component({
   selector: 'app-change',
   standalone: true,
-  imports: [SkeletonComponent, EmptyStateComponent, ModalComponent],
+  imports: [ThemeColorPipe, SkeletonComponent, EmptyStateComponent, ModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './change.component.html',
   styleUrl: './change.component.css',

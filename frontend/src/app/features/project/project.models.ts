@@ -125,3 +125,50 @@ export interface DeliveryAction<T> {
   record: T;
   toast?: string;
 }
+
+/** Real records offered by `GET /api/projects/form-options/`. */
+export interface OptionRow {
+  value: string;
+  label: string;
+  organisation?: string;
+  contract_value?: string;
+}
+
+export interface ProjectFormOptions {
+  organisations: OptionRow[];
+  contracts: OptionRow[];
+  managers: OptionRow[];
+  stages: string[];
+  health: string[];
+  states: OptionRow[];
+}
+
+/** The writable shape returned by `GET /api/projects/{id}/editable/`. */
+export interface ProjectEditable {
+  id: string;
+  ref: string;
+  name: string;
+  full_name?: string;
+  organisation?: string | null;
+  client_label?: string;
+  contract?: string | null;
+  contract_ref?: string;
+  manager?: string | null;
+  manager_name?: string;
+  stage: string;
+  phase_index: number;
+  completion: number;
+  contract_value?: string;
+  invoiced?: string;
+  received?: string;
+  budget_planned?: string;
+  budget_spent?: string;
+  budget_used_pct?: number;
+  margin_actual?: string;
+  margin_planned?: string;
+  margin_forecast?: string;
+  health: string;
+  tag_class?: string;
+  state: string;
+  order?: number;
+}

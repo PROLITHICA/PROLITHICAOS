@@ -24,9 +24,9 @@
   <div class="tab-rail">
     @for (t of tabs; track t.k) {
       <button type="button" class="tab"
-              [style.background]="tab() === t.k ? '#111' : '#fff'"
-              [style.color]="tab() === t.k ? '#fff' : '#333'"
-              [style.border-color]="tab() === t.k ? '#111' : '#b5b5b5'"
+              [style.background]="(tab() === t.k ? 'var(--pl-color-111111)' : 'var(--pl-color-ffffff)') | themeColor"
+              [style.color]="(tab() === t.k ? 'var(--pl-color-ffffff)' : 'var(--pl-color-333333)') | themeColor"
+              [style.border-color]="(tab() === t.k ? 'var(--pl-color-111111)' : 'var(--pl-color-b5b5b5)') | themeColor"
               [attr.aria-pressed]="tab() === t.k"
               (click)="selectTab(t.k)">{{ t.label }}</button>
     }
@@ -39,12 +39,12 @@
     @if (tab() === 'account') {
       <h4>Display name and title</h4>
       <div class="grid-240">
-        <app-field label="Display name" name="display_name" surface="#fafafa"
+        <app-field label="Display name" name="display_name" surface="var(--pl-color-fafafa)"
                    [value]="displayName()" (valueChange)="displayName.set($event)" />
-        <app-field label="Job title" name="job_title" surface="#fafafa"
+        <app-field label="Job title" name="job_title" surface="var(--pl-color-fafafa)"
                    [value]="jobTitle()" (valueChange)="jobTitle.set($event)" />
-        <app-field label="Work email" name="email" surface="#f2f2f2" [value]="email()" />
-        <app-field label="Department" name="department" surface="#f2f2f2" [value]="roleLabel()" />
+        <app-field label="Work email" name="email" surface="var(--pl-color-f2f2f2)" [value]="email()" />
+        <app-field label="Department" name="department" surface="var(--pl-color-f2f2f2)" [value]="roleLabel()" />
       </div>
       <div class="note" style="margin-top:8px">Email and department are set by administration. Your name and title appear on every assignment, approval, progress update and document you touch.</div>
 
@@ -64,7 +64,7 @@
           @if (acctBusy()) { <span class="spin"></span> }
           Save changes
         </button>
-        <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5"
+        <button type="button" class="btn btn-secondary" style="border-color:var(--pl-color-b5b5b5)"
                 (click)="revertAccount()">Revert to directory</button>
       </div>
     }
@@ -74,13 +74,13 @@
       <h4 style="margin:0 0 4px">Set a new password</h4>
       <div class="note" style="margin-bottom:14px">Last changed {{ pwChanged() }} · minimum twelve characters · changing it signs out your other devices</div>
       <div class="grid-220">
-        <app-field label="Current password" name="pw_current" kind="password" surface="#fafafa"
+        <app-field label="Current password" name="pw_current" kind="password" surface="var(--pl-color-fafafa)"
                    placeholder="Current password" autocomplete="current-password"
                    [value]="pwCurrent()" (valueChange)="pwCurrent.set($event)" />
-        <app-field label="New password" name="pw_next" kind="password" surface="#fafafa"
+        <app-field label="New password" name="pw_next" kind="password" surface="var(--pl-color-fafafa)"
                    placeholder="At least 12 characters" autocomplete="new-password"
                    [value]="pwNext()" (valueChange)="pwNext.set($event)" />
-        <app-field label="Confirm new password" name="pw_confirm" kind="password" surface="#fafafa"
+        <app-field label="Confirm new password" name="pw_confirm" kind="password" surface="var(--pl-color-fafafa)"
                    placeholder="Repeat it" autocomplete="new-password"
                    [error]="pwConfirm() && pwNext() !== pwConfirm() ? 'The two new passwords do not match.' : ''"
                    [value]="pwConfirm()" (valueChange)="pwConfirm.set($event)" />
@@ -90,14 +90,14 @@
         <span class="strength-track"><span class="strength-fill" [style.width]="pwStrengthWidth()"></span></span>
       </div>
       @if (pwError()) {
-        <div class="note" style="color:#111;margin-top:10px">{{ pwError() }}</div>
+        <div class="note" style="color:var(--pl-color-111111);margin-top:10px">{{ pwError() }}</div>
       }
       <div class="row-actions" style="margin-top:18px">
         <button type="button" class="btn btn-primary" [disabled]="pwBusy()" (click)="savePassword()">
           @if (pwBusy()) { <span class="spin"></span> }
           Change password
         </button>
-        <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5"
+        <button type="button" class="btn btn-secondary" style="border-color:var(--pl-color-b5b5b5)"
                 [disabled]="resetBusy()" (click)="sendReset()">
           @if (resetBusy()) { <span class="spin spin-dark"></span> }
           Email me a reset link
@@ -108,9 +108,9 @@
     <!-- ── Security & sessions ────────────────────────────────────── -->
     @if (tab() === 'security') {
       <h4>Multi-factor authentication</h4>
-      <div style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px dotted #dcdcdc">
+      <div style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--pl-rule)">
         <button type="button" class="box" aria-label="toggle mfa"
-                [style.background]="mfaOn() ? '#111' : 'transparent'"
+                [style.background]="(mfaOn() ? 'var(--pl-color-111111)' : 'transparent') | themeColor"
                 (click)="toggleMfa()"></button>
         <div>
           <div class="row-title">Require a second factor at sign-in</div>
@@ -145,7 +145,7 @@
           <app-empty-state heading="No other devices"
                            note="This is the only device signed in to your account." />
         }
-        <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5;margin-top:16px"
+        <button type="button" class="btn btn-secondary" style="border-color:var(--pl-color-b5b5b5);margin-top:16px"
                 (click)="signOutOthers()">Sign out of all other devices</button>
       }
     }
@@ -168,7 +168,7 @@
         @for (p of prefRows(); track p.k) {
           <div class="toggle-row">
             <button type="button" class="box" aria-label="toggle"
-                    [style.background]="p.on ? '#111' : 'transparent'"
+                    [style.background]="(p.on ? 'var(--pl-color-111111)' : 'transparent') | themeColor"
                     (click)="togglePref(p)"></button>
             <div>
               <div class="row-title">{{ p.label }}</div>
@@ -212,20 +212,20 @@
         <div class="pills">
           @for (o of colleagues(); track o.id) {
             <button type="button" class="pill"
-                    [style.background]="delegateId() === o.id ? '#111' : '#fff'"
-                    [style.color]="delegateId() === o.id ? '#fff' : '#333'"
-                    [style.border-color]="delegateId() === o.id ? '#111' : '#b5b5b5'"
+                    [style.background]="(delegateId() === o.id ? 'var(--pl-color-111111)' : 'var(--pl-color-ffffff)') | themeColor"
+                    [style.color]="(delegateId() === o.id ? 'var(--pl-color-ffffff)' : 'var(--pl-color-333333)') | themeColor"
+                    [style.border-color]="(delegateId() === o.id ? 'var(--pl-color-111111)' : 'var(--pl-color-b5b5b5)') | themeColor"
                     (click)="pickDelegate(o)">{{ o.display_name }}</button>
           } @empty {
             <div class="note">There is nobody else in the directory to delegate to.</div>
           }
         </div>
         <div style="max-width:300px">
-          <app-field label="Delegating from" name="deleg_from" kind="date" surface="#fafafa"
+          <app-field label="Delegating from" name="deleg_from" kind="date" surface="var(--pl-color-fafafa)"
                      [value]="delegFrom()" (valueChange)="delegFrom.set($event)" />
         </div>
         <div style="max-width:300px;margin-top:14px">
-          <app-field label="Out of office until" name="deleg_until" kind="date" surface="#fafafa"
+          <app-field label="Out of office until" name="deleg_until" kind="date" surface="var(--pl-color-fafafa)"
                      [value]="delegUntil()" (valueChange)="delegUntil.set($event)" />
         </div>
         <div class="row-actions">
@@ -233,7 +233,7 @@
             @if (delegBusy()) { <span class="spin"></span> }
             Save delegation
           </button>
-          <button type="button" class="btn btn-secondary" style="border-color:#b5b5b5"
+          <button type="button" class="btn btn-secondary" style="border-color:var(--pl-color-b5b5b5)"
                   [disabled]="delegBusy()" (click)="clearDelegation()">Clear delegation</button>
         </div>
       }

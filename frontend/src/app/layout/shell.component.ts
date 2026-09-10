@@ -1,3 +1,6 @@
+import { NotificationStateService } from '../core/notification-state.service';
+import { PresenceService } from '../core/presence.service';
+import { ThemeColorPipe } from '../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -6,9 +9,11 @@ import {
 } from '@angular/router';
 import { filter } from 'rxjs';
 
+import { ThemeService } from '../core/theme.service';
 import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
 import { LoadingService } from '../core/loading.service';
+import { PageTitleService } from '../core/page-title.service';
 import { Department, NavGroup } from '../core/models';
 import { PermissionService } from '../core/permission.service';
 import { BreadcrumbsComponent, Crumb } from '../shared/ui/breadcrumbs/breadcrumbs.component';
@@ -23,7 +28,7 @@ const HOME_ROUTES: Record<string, string> = {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [
+  imports: [ThemeColorPipe,
     RouterOutlet, RouterLink, RouterLinkActive, FormsModule,
     BreadcrumbsComponent, SkeletonComponent, ToastHostComponent,
   ],
@@ -38,13 +43,21 @@ export class ShellComponent {
   readonly auth = inject(AuthService);
   readonly perms = inject(PermissionService);
   readonly loader = inject(LoadingService);
+  private readonly titles = inject(PageTitleService);
 
-  readonly departments = signal<Department[]>([]);
-  readonly notifCount = signal<number>(0);
-  readonly pageTitle = signal<string>('');
+  readonly theme = inject(ThemeService);
+  readonly departments = computed(() => this.user()?.visible_departments ?? []);
+  readonly notifications = inject(NotificationStateService);
+  readonly presence = inject(PresenceService);
+  readonly notifCount = this.notifications.unread;
+  private readonly routeTitle = signal<string>('');
+  /** A screen may name itself; otherwise the route's own title stands. */
+  readonly pageTitle = computed(() => this.titles.title() || this.routeTitle());
   readonly crumbs = signal<Crumb[]>([]);
   readonly crumbCurrent = signal<string>('');
   readonly query = signal<string>('');
+  /** Off-canvas sidebar, used below the desk breakpoint. */
+  readonly navOpen = signal(false);
 
   readonly user = this.auth.currentUser;
   readonly navGroups = computed<NavGroup[]>(() => this.perms.navGroups());
@@ -54,15 +67,8 @@ export class ShellComponent {
   readonly activeDept = computed(() => this.user()?.department?.slug ?? '');
 
   constructor() {
-    this.api.list<Department>('/departments/').subscribe({
-      next: (page) => this.departments.set(page.results ?? []),
-      error: () => this.departments.set([]),
-    });
-    // The badge counts what is still unread, which is what the endpoint reports.
-    this.api.get<{ unread?: number }>('/notifications/').subscribe({
-      next: (page) => this.notifCount.set(page?.unread ?? 0),
-      error: () => this.notifCount.set(0),
-    });
+    this.notifications.unread.set(0);
+    this.notifications.refresh();
 
     this.router.events.pipe(filter((event) => event instanceof NavigationStart))
       .subscribe(() => this.loader.start('Loading records and permissions'));
@@ -72,6 +78,8 @@ export class ShellComponent {
         event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError))
       .subscribe(() => {
         this.loader.stop();
+        this.closeNav();
+        this.titles.clear();
         this.readRouteData();
       });
 
@@ -90,9 +98,17 @@ export class ShellComponent {
       crumbs?: Crumb[];
       crumbCurrent?: string;
     };
-    this.pageTitle.set(data.title ?? '');
+    this.routeTitle.set(data.title ?? '');
     this.crumbs.set(data.crumbs ?? []);
     this.crumbCurrent.set(data.crumbCurrent ?? '');
+  }
+
+  toggleNav(): void {
+    this.navOpen.update((open) => !open);
+  }
+
+  closeNav(): void {
+    this.navOpen.set(false);
   }
 
   departmentRoute(dept: Department): string {

@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 export interface DonutSlice { label: string; value: number; display: string; color: string; }
@@ -9,24 +10,25 @@ export interface DonutSlice { label: string; value: number; display: string; col
 @Component({
   selector: 'app-donut',
   standalone: true,
+  imports: [ThemeColorPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="wrap">
       <svg viewBox="0 0 124 124" width="124" height="124" aria-hidden="true">
-        <circle cx="62" cy="62" r="44" fill="none" stroke="#f2f2f2" stroke-width="17" />
+        <circle cx="62" cy="62" r="44" fill="none" stroke="var(--pl-color-f2f2f2)" stroke-width="17" />
         <g transform="rotate(-90 62 62)" fill="none" stroke-width="17">
           @for (arc of arcs(); track $index) {
-            <circle cx="62" cy="62" r="44" [attr.stroke]="arc.color"
+            <circle cx="62" cy="62" r="44" [attr.stroke]="(arc.color) | themeColor"
                     [attr.stroke-dasharray]="arc.dash" [attr.stroke-dashoffset]="arc.offset" />
           }
         </g>
-        <text x="62" y="59" text-anchor="middle" font-size="18" font-weight="600" fill="#111" font-family="Roboto, sans-serif">{{ total() }}</text>
-        <text x="62" y="75" text-anchor="middle" font-size="9" fill="#9a9a9a" font-family="Roboto, sans-serif">{{ totalNote() }}</text>
+        <text x="62" y="59" text-anchor="middle" font-size="18" font-weight="600" fill="var(--pl-color-111111)" font-family="Roboto, sans-serif">{{ total() }}</text>
+        <text x="62" y="75" text-anchor="middle" font-size="9" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">{{ totalNote() }}</text>
       </svg>
       <div class="legend">
         @for (slice of slices(); track slice.label; let last = $last) {
           <span class="row" [class.last]="last">
-            <span class="swatch" [style.background]="slice.color"></span>
+            <span class="swatch" [style.background]="(slice.color) | themeColor"></span>
             <span class="label">{{ slice.label }}</span>
             <span class="value">{{ slice.display }}</span>
           </span>
@@ -38,11 +40,16 @@ export interface DonutSlice { label: string; value: number; display: string; col
     .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 22px; margin-top: 16px; }
     svg { flex: 0 1 124px; max-width: 124px; }
     .legend { flex: 1 1 150px; min-width: 150px; display: flex; flex-direction: column; font-size: 12px; }
-    .row { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px dotted #e0e0e0; }
+    .row { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px dotted var(--pl-color-e0e0e0); }
     .row.last { border-bottom: 0; }
     .swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
     .label { flex: 1; }
     .value { font-weight: 600; }
+    @media (max-width: 560px) {
+      .wrap { gap: 14px 16px; margin-top: 12px; }
+      .legend { flex: 1 1 100%; min-width: 0; }
+      .row { padding: 9px 0; }
+    }
   `],
 })
 export class DonutComponent {

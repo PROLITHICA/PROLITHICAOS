@@ -1,20 +1,37 @@
-.stack { display: flex; flex-direction: column; gap: 14px; }
-.skel-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; }
+:host { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+
+.stack { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+.col { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+.skel-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--pl-pane-gap); }
 
 .desk-row {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: 14px;
-  margin-top: 20px;
+  gap: var(--pl-pane-gap);
   align-items: start;
 }
+
+/* Commercial detail is a note about what this role may see, not a record.
+   It stays open on the ground with a quiet rule rather than claiming a
+   pane of its own at the foot of a column that already has three. */
+.aside-note {
+  border-left: 1px solid var(--pl-rule-strong);
+  padding: 2px 0 2px 16px;
+  margin: 2px 0 2px 6px;
+}
+
+
+/* List rows are separated, not boxed: the rule between them disappears at
+   the foot of the list so the pane closes on whitespace. */
+.row-rule { border-bottom: 1px solid var(--pl-rule); }
+.row-rule:last-child { border-bottom: 0; }
 
 .tick {
   width: 15px;
   height: 15px;
   margin-top: 3px;
   padding: 0;
-  border: 1.5px solid #3d3d3d;
+  border: 1.5px solid var(--pl-color-3d3d3d);
   border-radius: 5px;
   cursor: pointer;
 }
@@ -22,4 +39,17 @@
 
 @media (max-width: 1000px) {
   .desk-row, .skel-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── responsive ─────────────────────────────────────────────────────────
+   The burndown scales cleanly inside its card; it only needs to keep its
+   aspect ratio rather than the fixed height. */
+@media (max-width: 900px) {
+  .desk-row svg { max-width: 100%; height: auto; }
+}
+
+/* The task tick stays 15px to the eye but reaches a 41px touch target. */
+@media (max-width: 720px) {
+  .tick { position: relative; }
+  .tick::after { content: ''; position: absolute; inset: -13px; }
 }

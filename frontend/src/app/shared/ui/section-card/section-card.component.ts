@@ -19,12 +19,19 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     </section>
   `,
   styles: [`
-    .sec { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 18px; background: #fff; }
+    .sec { border: 0; border-radius: 16px; background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: var(--pl-pane-pad); }
     .sec-head { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; align-items: baseline; }
     .sec-title { margin: 0 0 2px; font-size: 15px; }
-    .sec-sub { font-size: 11.5px; color: #8a8a8a; }
+    .sec-sub { font-size: 11.5px; color: var(--pl-color-8a8a8a); }
     .sec-body { margin-top: 10px; }
-    .sec-foot { font-size: 11.5px; color: #6b6b6b; border-top: 1px dotted #dcdcdc; padding-top: 10px; margin-top: 4px; }
+    .sec-foot { font-size: 11.5px; color: var(--pl-color-6b6b6b); border-top: 1px solid var(--pl-rule); padding-top: 12px; margin-top: 6px; }
+    @media (max-width: 900px) {
+      .sec-head ::ng-deep [section-actions] { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+    }
+    @media (max-width: 560px) {
+      .sec { padding: 14px; }
+      .sec-title { font-size: 14.5px; }
+    }
   `],
 })
 export class SectionCardComponent {

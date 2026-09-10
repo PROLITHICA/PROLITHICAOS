@@ -92,19 +92,29 @@ const SUBTITLE = "Questions answered from the company's own records, inside your
   styles: [`
     :host { display: block; }
     .title { font-size: 28px; margin: 0 0 4px; }
-    .sub { font-size: 12.5px; color: #8a8a8a; max-width: 74ch; }
+    .sub { font-size: 12.5px; color: var(--pl-color-8a8a8a); max-width: 74ch; }
     .ask { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; max-width: 900px; }
-    .ask-input { flex: 1 1 320px; min-width: 260px; background: #fafafa; border-color: #b5b5b5; }
+    .ask-input { flex: 1 1 320px; min-width: 260px; background: var(--pl-color-fafafa); border-color: var(--pl-color-b5b5b5); }
     .ask-btn { white-space: nowrap; }
     .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .pill { border-color: #b5b5b5; font-size: 12px; padding: 6px 14px; }
+    .pill { border-color: var(--pl-color-b5b5b5); font-size: 12px; padding: 6px 14px; }
     .answer { margin-top: 18px; max-width: 900px; }
+    .answer.card { padding: var(--pl-pane-pad); }
     .kicker {
-      font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9a9a;
+      font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pl-color-9a9a9a);
     }
     .text { font-size: 15px; margin-top: 8px; max-width: 70ch; }
     .table-wrap { margin-top: 12px; }
-    .foot { font-size: 11px; color: #9a9a9a; margin-top: 10px; }
+    .foot { font-size: 11px; color: var(--pl-color-9a9a9a); margin-top: 10px; }
+    @media (max-width: 900px) { .sub, .text { max-width: none; } }
+    @media (max-width: 560px) {
+      .ask { flex-direction: column; gap: 10px; }
+      .ask-input { flex: 1 1 auto; min-width: 0; width: 100%; min-height: 44px; }
+      .ask-btn { width: 100%; min-height: 44px; }
+      .pill { min-height: 40px; display: inline-flex; align-items: center; }
+      .suggestions .pill { max-width: 100%; text-align: left; white-space: normal; }
+      .text { font-size: 14px; }
+    }
   `],
 })
 export class IntelligenceComponent {

@@ -12,54 +12,56 @@
     (action)="backToProject()" />
 } @else {
   @if (screen(); as s) {
-    <h1 style="font-size:28px;margin:0 0 4px">{{ s.title }}</h1>
-    <div style="font-size:12.5px;color:#8a8a8a">{{ s.subtitle }}</div>
+    <div class="title-block">
+      <h1 style="font-size:28px;margin:0 0 4px">{{ s.title }}</h1>
+      <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">{{ s.subtitle }}</div>
+    </div>
 
     <div class="cause-row">
       <!-- ── margin decomposition ─────────────────────────────────── -->
-      <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+      <div class="pane">
         <h4 style="margin:0 0 12px;font-size:15px">Margin decomposition</h4>
         <div style="display:flex;flex-direction:column;gap:16px">
           @for (c of causes(); track c.id) {
             <div style="display:grid;grid-template-columns:66px minmax(0,1fr);gap:16px;align-items:start">
-              <div style="font-family:'Roboto',sans-serif;font-size:20px;font-weight:600;color:#111111;text-align:right;white-space:nowrap">{{ c.impact }}</div>
+              <div style="font-family:'Roboto',sans-serif;font-size:20px;font-weight:600;color:var(--pl-color-111111);text-align:right;white-space:nowrap">{{ c.impact }}</div>
               <div>
                 <div style="font-size:13.5px;font-weight:600">{{ c.title }}</div>
-                <span style="display:block;height:6px;background:#f0f0f0;border-radius:5px;margin:6px 0 6px;overflow:hidden">
-                  <span style="display:block;height:6px;background:#111111" [style.width]="c.w"></span>
+                <span style="display:block;height:6px;background:var(--pl-color-f0f0f0);border-radius:5px;margin:6px 0 6px;overflow:hidden">
+                  <span style="display:block;height:6px;background:var(--pl-color-111111)" [style.width]="c.w"></span>
                 </span>
-                <div style="font-size:12.5px;color:#4a4a4a">{{ c.body }}</div>
-                <div style="font-size:11px;color:#9a9a9a;margin-top:3px">{{ c.meta }}</div>
+                <div style="font-size:12.5px;color:var(--pl-color-4a4a4a)">{{ c.body }}</div>
+                <div style="font-size:11px;color:var(--pl-color-9a9a9a);margin-top:3px">{{ c.meta }}</div>
               </div>
             </div>
           } @empty {
-            <div style="font-size:12.5px;color:#8a8a8a">No causes recorded against this project.</div>
+            <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">No causes recorded against this project.</div>
           }
         </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="col">
         <!-- ── planned to actual ──────────────────────────────────── -->
         @if (waterfall(); as w) {
-          <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+          <div class="pane">
             <h4 style="margin:0 0 2px;font-size:15px">{{ w.title }}</h4>
-            <div style="font-size:11.5px;color:#8a8a8a">{{ w.subtitle }}</div>
+            <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">{{ w.subtitle }}</div>
             <svg viewBox="0 0 320 180" width="100%" height="180" style="margin-top:12px" aria-hidden="true">
-              <line x1="20" y1="150" x2="310" y2="150" stroke="#d8d8d8" />
+              <line x1="20" y1="150" x2="310" y2="150" stroke="var(--pl-color-d8d8d8)" />
               @for (col of columns(); track $index) {
                 <rect [attr.x]="col.x" [attr.y]="col.solidY" [attr.width]="col.width"
-                      [attr.height]="col.solidHeight" [attr.fill]="col.ghostHeight ? '#c4c4c4' : '#111'" />
+                      [attr.height]="col.solidHeight" [attr.fill]="(col.ghostHeight ? 'var(--pl-color-c4c4c4)' : 'var(--pl-color-111111)') | themeColor" />
                 @if (col.ghostHeight) {
                   <rect [attr.x]="col.x" [attr.y]="col.ghostY" [attr.width]="col.width"
-                        [attr.height]="col.ghostHeight" fill="#f7f7f7" stroke="#eee" />
+                        [attr.height]="col.ghostHeight" fill="var(--pl-color-f7f7f7)" stroke="var(--pl-color-eeeeee)" />
                 }
               }
-              <g font-size="9.5" fill="#6b6b6b" font-family="Roboto, sans-serif">
+              <g font-size="9.5" fill="var(--pl-color-6b6b6b)" font-family="Roboto, sans-serif">
                 @for (col of columns(); track $index) {
                   <text [attr.x]="col.labelX" y="166">{{ col.label }}</text>
                 }
               </g>
-              <g font-size="10" font-weight="600" font-family="Roboto, sans-serif" fill="#111">
+              <g font-size="10" font-weight="600" font-family="Roboto, sans-serif" fill="var(--pl-color-111111)">
                 @for (col of columns(); track $index) {
                   @if (col.value) { <text [attr.x]="col.valueX" [attr.y]="col.valueY">{{ col.value }}</text> }
                 }
@@ -69,16 +71,16 @@
         }
 
         <!-- ── act on it ──────────────────────────────────────────── -->
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="pane">
           <h4 style="margin:0 0 2px;font-size:15px">Act on it</h4>
-          <div style="font-size:11.5px;color:#8a8a8a">Each action writes back to contract, project or billing</div>
+          <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Each action writes back to contract, project or billing</div>
           <div style="display:flex;flex-direction:column;gap:9px;margin-top:14px">
             @for (a of actions(); track a.id) {
               <button type="button" class="btn" [class]="'btn ' + a.btn_class"
                       (click)="act(a)" [disabled]="busy() === a.id"
-                      style="border-color:#b5b5b5;justify-content:flex-start">{{ a.label }}</button>
+                      style="border-color:var(--pl-color-b5b5b5);justify-content:flex-start">{{ a.label }}</button>
             } @empty {
-              <div style="font-size:12.5px;color:#8a8a8a">No actions are available on these causes.</div>
+              <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">No actions are available on these causes.</div>
             }
           </div>
         </div>

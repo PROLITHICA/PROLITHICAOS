@@ -581,3 +581,112 @@ class CauseScreenSerializer(serializers.Serializer):
             "subtitle": "Where the thirteen points went",
             "bars": bars,
         }
+
+
+class ProjectWriteSerializer(serializers.ModelSerializer):
+    """Create and edit a project.
+
+    Everything a person would reasonably want to change is writable here, and the
+    fields that can be derived are derived: a reference is allocated, the client
+    and manager labels follow their records, and health follows the margin unless
+    it is set explicitly.
+    """
+
+    organisation = serializers.PrimaryKeyRelatedField(
+        queryset=Project._meta.get_field("organisation").related_model.objects.all(),
+        required=False, allow_null=True,
+    )
+    contract = serializers.PrimaryKeyRelatedField(
+        queryset=Project._meta.get_field("contract").related_model.objects.all(),
+        required=False, allow_null=True,
+    )
+    manager = serializers.PrimaryKeyRelatedField(
+        queryset=Project._meta.get_field("manager").related_model.objects.all(),
+        required=False, allow_null=True,
+    )
+
+    class Meta:
+        model = Project
+        fields = [
+            "id", "ref", "name", "full_name", "organisation", "client_label", "contract",
+            "contract_ref", "manager", "manager_name", "stage", "phase_index", "completion",
+            "contract_value", "contract_value_note", "invoiced", "received", "budget_planned",
+            "budget_spent", "budget_used_pct", "margin_actual", "margin_planned",
+            "margin_forecast", "margin_note", "health", "tag_class", "state", "order",
+        ]
+        extra_kwargs = {
+            "ref": {"required": False},
+            "client_label": {"required": False},
+            "manager_name": {"required": False},
+            "contract_ref": {"required": False},
+            "name": {"required": True},
+        }
+
+    def validate_completion(self, value):
+        return self._percent("Completion", value)
+
+    def validate_budget_used_pct(self, value):
+        return self._percent("Budget used", value)
+
+    @staticmethod
+    def _percent(label, value):
+        if value is None:
+            return value
+        if not 0 <= value <= 100:
+            raise serializers.ValidationError(f"{label} is a percentage between 0 and 100.")
+        return value
+
+    def validate_phase_index(self, value):
+        if value is not None and not 0 <= value <= 4:
+            raise serializers.ValidationError("A project has five delivery stages, 0 to 4.")
+        return value
+
+    def validate(self, attrs):
+        spent = attrs.get("budget_spent", getattr(self.instance, "budget_spent", None))
+        planned = attrs.get("budget_planned", getattr(self.instance, "budget_planned", None))
+        if planned is not None and spent is not None and planned > 0:
+            attrs["budget_used_pct"] = min(200, int(round(spent / planned * 100)))
+        return attrs
+
+    def create(self, validated):
+        validated.setdefault("ref", self.next_ref())
+        self.derive(validated)
+        validated.setdefault("order", (Project.objects.count() or 0))
+        return super().create(validated)
+
+    def update(self, instance, validated):
+        self.derive(validated, instance)
+        return super().update(instance, validated)
+
+    @staticmethod
+    def next_ref():
+        """Allocate the next PRJ-0xx, continuing the company's existing numbering."""
+        highest = 0
+        for ref in Project.objects.values_list("ref", flat=True):
+            tail = ref.rsplit("-", 1)[-1]
+            if tail.isdigit():
+                highest = max(highest, int(tail))
+        return f"PRJ-{highest + 1:03d}"
+
+    @staticmethod
+    def derive(validated, instance=None):
+        """Fill the label fields that shadow a related record."""
+        organisation = validated.get(
+            "organisation", getattr(instance, "organisation", None)
+        )
+        if organisation is not None and not validated.get("client_label"):
+            validated["client_label"] = organisation.name
+
+        contract = validated.get("contract", getattr(instance, "contract", None))
+        if contract is not None and not validated.get("contract_ref"):
+            validated["contract_ref"] = contract.ref
+
+        manager = validated.get("manager", getattr(instance, "manager", None))
+        if manager is not None and not validated.get("manager_name"):
+            validated["manager_name"] = manager.display_name
+
+        margin = validated.get("margin_actual", getattr(instance, "margin_actual", None))
+        if margin is not None and not validated.get("health"):
+            health, tag = Project.health_for(margin)
+            validated["health"] = health
+            validated.setdefault("tag_class", tag)

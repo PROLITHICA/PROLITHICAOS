@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -42,11 +43,13 @@ export interface Risk {
 @Component({
   selector: 'app-risks',
   standalone: true,
-  imports: [TagComponent, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, TagComponent, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="title">{{ view()?.title || 'Risk register' }}</h1>
-    <div class="sub">{{ view()?.subtitle || '' }}</div>
+    <div class="title-block">
+      <h1 class="title">{{ view()?.title || 'Risk register' }}</h1>
+      <div class="sub">{{ view()?.subtitle || '' }}</div>
+    </div>
 
     @if (loading()) {
       <div class="grid">
@@ -83,8 +86,8 @@ export interface Risk {
             <div>
               <div class="risk-scale">Probability × impact</div>
               <svg viewBox="0 0 200 10" width="100%" height="10" aria-hidden="true">
-                <rect x="0" y="3" width="200" height="4" fill="#f0f0f0" rx="2" />
-                <rect x="0" y="3" [attr.width]="risk.bar_width" height="4" [attr.fill]="risk.bar_col" rx="2" />
+                <rect x="0" y="3" width="200" height="4" fill="var(--pl-color-f0f0f0)" rx="2" />
+                <rect x="0" y="3" [attr.width]="risk.bar_width" height="4" [attr.fill]="(risk.bar_col) | themeColor" rx="2" />
               </svg>
             </div>
             <button type="button" class="btn btn-secondary risk-cta" (click)="open(risk)">
@@ -96,25 +99,25 @@ export interface Risk {
     }
   `,
   styles: [`
-    :host { display: block; }
+    :host { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
     .title { font-size: 28px; margin: 0 0 4px; }
-    .sub { font-size: 12.5px; color: #8a8a8a; max-width: 74ch; }
-    .body { margin-top: 20px; }
+    .sub { font-size: 12.5px; color: var(--pl-color-8a8a8a); max-width: 74ch; }
     .grid {
       display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px; margin-top: 20px;
+      gap: var(--pl-pane-gap);
     }
     .risk {
-      border: 1px dotted #c4c4c4; border-radius: 16px; padding: 18px;
-      display: flex; flex-direction: column; gap: 10px; background: #fff;
+      border: 0; border-radius: var(--pl-radius-card); padding: var(--pl-pane-pad);
+      display: flex; flex-direction: column; gap: 10px;
+      background: var(--pl-pane); box-shadow: var(--pl-lift-1);
     }
     .risk-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .raised { font-size: 11px; color: #9a9a9a; }
+    .raised { font-size: 11px; color: var(--pl-color-9a9a9a); }
     .risk-title { margin: 0; font-size: 16px; }
-    .risk-body { margin: 0; font-size: 12.5px; color: #4a4a4a; }
-    .risk-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: #8a8a8a; }
-    .risk-scale { font-size: 10.5px; color: #9a9a9a; margin-bottom: 4px; }
-    .risk-cta { border-color: #b5b5b5; margin-top: auto; }
+    .risk-body { margin: 0; font-size: 12.5px; color: var(--pl-color-4a4a4a); }
+    .risk-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: var(--pl-color-8a8a8a); }
+    .risk-scale { font-size: 10.5px; color: var(--pl-color-9a9a9a); margin-bottom: 4px; }
+    .risk-cta { border-color: var(--pl-color-b5b5b5); margin-top: auto; }
     @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
   `],

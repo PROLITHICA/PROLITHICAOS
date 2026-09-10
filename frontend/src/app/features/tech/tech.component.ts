@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -73,7 +74,7 @@ export interface TechDesk {
 @Component({
   selector: 'app-tech',
   standalone: true,
-  imports: [HasPermDirective, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, HasPermDirective, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tech.component.html',
   styleUrl: './tech.component.css',
@@ -90,9 +91,9 @@ export class TechComponent {
   readonly tasks = computed(() =>
     (this.desk()?.tasks ?? []).map((task) => ({
       ...task,
-      fill: task.done ? '#3d3d3d' : 'transparent',
+      fill: task.done ? 'var(--pl-color-3d3d3d)' : 'transparent',
       strike: task.done ? 'line-through' : 'none',
-      textCol: task.done ? '#9a9a9a' : '#111',
+      textCol: task.done ? 'var(--pl-color-9a9a9a)' : 'var(--pl-color-111111)',
     })),
   );
 

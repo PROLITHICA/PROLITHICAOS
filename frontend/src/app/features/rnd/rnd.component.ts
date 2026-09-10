@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
@@ -45,7 +46,7 @@ const EMPTY_PAGE = { count: 0, next: null, previous: null, results: [] };
 @Component({
   selector: 'app-rnd',
   standalone: true,
-  imports: [SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './rnd.component.html',
   styleUrl: './rnd.component.css',

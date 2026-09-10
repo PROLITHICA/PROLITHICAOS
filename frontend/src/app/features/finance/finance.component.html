@@ -14,6 +14,8 @@
   </div>
 } @else if (status() === 'loading') {
   <app-page-header [title]="title()" [subtitle]="subtitle()" />
+  <div class="gap"><app-skeleton height="210px" /></div>
+  <div class="gap"><app-skeleton height="240px" /></div>
   <div class="figures">
     @for (slot of [0, 1, 2, 3]; track slot) { <app-skeleton height="118px" /> }
   </div>
@@ -26,13 +28,111 @@
 
   <app-page-header [title]="title()" [subtitle]="subtitle()" />
 
+  <!-- ── 1. Billing cycle — where the money is standing right now ───────── -->
+  @if (cycle(); as cycle) {
+    <section class="block">
+      <app-section-card [heading]="cycle.title" [subheading]="blockedLine()"
+                        [footnote]="cycle.subtitle">
+        <div class="cycle-scroll">
+          <ol class="cycle" [style.min-width.px]="cycleMinWidth()">
+            @for (stage of stages(); track stage.key; let last = $last) {
+              <li class="stage" [class.stage-alert]="stage.key === 'blocked' || stage.key === 'overdue'">
+                <div class="stage-label">{{ stage.label }}</div>
+                <div class="stage-value">{{ stage.value }}</div>
+                <div class="stage-count">
+                  {{ stage.count }} {{ stage.count === 1 ? 'item' : 'items' }}
+                </div>
+                <div class="stage-note">{{ stage.note }}</div>
+                @if (!last) { <span class="stage-arrow" aria-hidden="true">→</span> }
+              </li>
+            }
+          </ol>
+        </div>
+
+        <div class="blocked">
+          <div class="blocked-head">Blocked right now</div>
+          @for (row of blockedRows(); track row.title) {
+            <div class="blocked-row">
+              <div class="blocked-body">
+                <div class="blocked-title">{{ row.title }}</div>
+                <div class="blocked-meta">{{ row.meta }}</div>
+              </div>
+              <div class="blocked-value">{{ row.value }}</div>
+              <app-tag text="Blocked" [tagClass]="row.tag_class" />
+            </div>
+          } @empty {
+            <div class="none">Nothing is blocked. Every accepted milestone can be billed.</div>
+          }
+        </div>
+      </app-section-card>
+    </section>
+  }
+
+  <!-- ── 2. Project breakdown ───────────────────────────────────────────── -->
+  @if (breakdown(); as breakdown) {
+    <section class="block">
+      <app-section-card [heading]="breakdown.title" [subheading]="breakdown.subtitle"
+                        footnote="Bars show invoiced, paid and cost against the contract value. Open a row for the project itself.">
+        <div class="scroll-x">
+          <table class="table breakdown">
+            <thead>
+              <tr>
+                @for (col of breakdown.cols; track col; let first = $first) {
+                  <th [style.text-align]="first ? 'left' : 'right'">{{ col }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of breakdownRows(); track row.ref) {
+                <tr class="brow" tabindex="0" (click)="openProject(row)"
+                    (keydown.enter)="openProject(row)">
+                  <td class="bproject">
+                    <div class="bname">{{ row.project }}</div>
+                    <div class="bref">{{ row.ref }}</div>
+                    <div class="bars">
+                      @for (bar of row.bars; track bar.label) {
+                        <span class="bar" [attr.title]="bar.label + ' ' + bar.width">
+                          <span class="bar-fill" [style.width]="bar.width"
+                                [style.background]="(bar.tone) | themeColor"></span>
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td class="num">{{ row.contract }}</td>
+                  <td class="num">{{ row.invoiced }}</td>
+                  <td class="num">{{ row.paid }}</td>
+                  <td class="num muted">{{ row.cost }}</td>
+                  <td class="num strong">{{ row.unbilled }}</td>
+                  <td class="num">
+                    <app-tag [text]="row.margin_now" [tagClass]="row.tag_class" />
+                  </td>
+                  <td class="num muted">{{ row.forecast }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="8" class="none">No projects have any figures yet.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="legend">
+          @for (bar of legendBars(); track bar.label) {
+            <span class="legend-item">
+              <span class="swatch" [style.background]="(bar.tone) | themeColor"></span>{{ bar.label }}
+            </span>
+          }
+        </div>
+      </app-section-card>
+    </section>
+  }
+
   <div class="figures">
+
     @for (figure of figures(); track figure.label) {
       <div class="figure">
         <div class="figure-label">{{ figure.label }}</div>
-        <div class="figure-value" [style.color]="figure.col">{{ figure.value }}</div>
+        <div class="figure-value" [style.color]="(figure.col) | themeColor">{{ figure.value }}</div>
         <span class="track">
-          <span class="fill" [style.width]="figure.w" [style.background]="figure.col"></span>
+          <span class="fill" [style.width]="figure.w" [style.background]="(figure.col) | themeColor"></span>
         </span>
         <div class="figure-note">{{ figure.note }}</div>
       </div>
@@ -42,14 +142,15 @@
   <div class="split">
     @if (chart(); as chart) {
       <app-card [padding]="18" [heading]="chart.title" [subheading]="chart.subtitle">
+        <div class="chart-scroll">
         <svg [attr.viewBox]="chart.view_box" width="100%" height="190" class="chart" aria-hidden="true">
-          <g stroke="#f0f0f0">
+          <g stroke="var(--pl-color-f0f0f0)">
             @for (line of chart.axis; track line.y) {
               <line x1="34" [attr.y1]="line.y" x2="510" [attr.y2]="line.y" />
             }
           </g>
-          <line x1="34" [attr.y1]="chart.baseline_y" x2="510" [attr.y2]="chart.baseline_y" stroke="#d8d8d8" />
-          <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+          <line x1="34" [attr.y1]="chart.baseline_y" x2="510" [attr.y2]="chart.baseline_y" stroke="var(--pl-color-d8d8d8)" />
+          <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
             @for (line of chart.axis; track line.y) {
               <text x="6" [attr.y]="line.y + 4">{{ line.label }}</text>
             }
@@ -57,23 +158,24 @@
           <g>
             @for (bar of chart.invoiced; track $index) {
               <rect [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.width"
-                    [attr.height]="bar.height" [attr.fill]="bar.fill || '#111'" />
+                    [attr.height]="bar.height" [attr.fill]="(bar.fill || 'var(--pl-color-111111)') | themeColor" />
             }
             @for (bar of chart.received; track $index) {
               <rect [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.width"
-                    [attr.height]="bar.height" [attr.fill]="bar.fill || '#d6d6d6'" />
+                    [attr.height]="bar.height" [attr.fill]="(bar.fill || 'var(--pl-color-d6d6d6)') | themeColor" />
             }
           </g>
-          <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+          <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
             @for (month of months(); track month.label) {
               <text [attr.x]="month.x" y="176">{{ month.label }}</text>
             }
           </g>
         </svg>
+        </div>
         <div class="legend">
           @for (item of chart.legend; track item.label) {
             <span class="legend-item">
-              <span class="swatch" [style.background]="item.colour"></span>{{ item.label }}
+              <span class="swatch" [style.background]="(item.colour) | themeColor"></span>{{ item.label }}
             </span>
           }
         </div>

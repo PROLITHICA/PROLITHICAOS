@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { RecordCell, RecordRow, ViewColumn } from '../../../core/models';
@@ -11,6 +12,7 @@ interface Header { l: string; align: string; }
 @Component({
   selector: 'app-data-table',
   standalone: true,
+  imports: [ThemeColorPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="scroll-x">
@@ -30,7 +32,7 @@ interface Header { l: string; align: string; }
               @for (cell of row.cells; track $index) {
                 <td [style.text-align]="cell.align || 'left'"
                     [style.font-weight]="cell.bold ? 600 : 400"
-                    [style.color]="cell.muted ? '#6b6b6b' : '#111'">
+                    [style.color]="(cell.muted ? 'var(--pl-color-6b6b6b)' : 'var(--pl-color-111111)') | themeColor">
                   @if (cell.tag) {
                     <span class="tag" [class]="'tag ' + cell.tag">{{ cell.t }}</span>
                   } @else {
@@ -50,7 +52,14 @@ interface Header { l: string; align: string; }
   `,
   styles: [`
     .scroll-x { overflow-x: auto; max-width: 100%; }
-    .empty { color: #8a8a8a; font-size: 12.5px; text-align: center; padding: 26px 10px; }
+    .empty { color: var(--pl-color-8a8a8a); font-size: 12.5px; text-align: center; padding: 26px 10px; }
+    /* Responsive: the table keeps its width and scrolls inside its own box. */
+    .scroll-x { -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+    @media (max-width: 720px) {
+      .scroll-x ::ng-deep th,
+      .scroll-x ::ng-deep td { padding: 9px 8px; }
+      .empty { padding: 22px 10px; }
+    }
   `],
 })
 export class DataTableComponent {

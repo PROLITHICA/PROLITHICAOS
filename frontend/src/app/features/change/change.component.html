@@ -41,7 +41,7 @@
 
   <div class="flow">
     @for (step of record.flow; track $index) {
-      <div class="step" [style.border-color]="step.border" [style.background]="step.bg">
+      <div class="step" [style.border-color]="(step.border) | themeColor" [style.background]="(step.bg) | themeColor">
         <div class="step-name" [style.font-weight]="step.weight">{{ step.name }}</div>
         <div class="step-meta">{{ step.meta }}</div>
       </div>

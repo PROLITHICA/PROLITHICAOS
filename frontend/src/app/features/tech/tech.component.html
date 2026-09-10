@@ -13,47 +13,49 @@
     (action)="reload()" />
 } @else {
   @if (desk(); as d) {
-    <h1 style="font-size:28px;margin:0 0 4px">{{ d.title }}</h1>
-    <div style="font-size:12.5px;color:#8a8a8a">{{ d.subtitle }}</div>
+    <div class="title-block">
+      <h1 style="font-size:28px;margin:0 0 4px">{{ d.title }}</h1>
+      <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">{{ d.subtitle }}</div>
+    </div>
 
     <div class="desk-row">
       <!-- ── my tasks ─────────────────────────────────────────────── -->
-      <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+      <div class="pane">
         <h4 style="margin:0 0 2px;font-size:15px">My tasks</h4>
-        <div style="font-size:11.5px;color:#8a8a8a">Closing a task updates its requirement, milestone and project completion</div>
+        <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Closing a task updates its requirement, milestone and project completion</div>
         <div style="display:flex;flex-direction:column;gap:0;margin-top:8px">
           @for (t of tasks(); track t.id) {
-            <div style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:start;padding:11px 0;border-bottom:1px dotted #dcdcdc">
+            <div class="row-rule" style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 0">
               <button type="button" class="tick" (click)="toggle(t)" [disabled]="busy() === t.id"
                       [attr.aria-label]="'toggle task ' + t.ref" [attr.aria-pressed]="t.done"
-                      [style.background]="t.fill"></button>
+                      [style.background]="(t.fill) | themeColor"></button>
               <div>
-                <div style="font-size:13.5px" [style.color]="t.textCol" [style.text-decoration]="t.strike">{{ t.text }}</div>
-                <div style="font-size:11.5px;color:#9a9a9a">{{ t.meta }}</div>
+                <div style="font-size:13.5px" [style.color]="(t.textCol) | themeColor" [style.text-decoration]="t.strike">{{ t.text }}</div>
+                <div style="font-size:11.5px;color:var(--pl-color-9a9a9a)">{{ t.meta }}</div>
               </div>
               <span class="tag" [class]="'tag ' + t.tag_class">{{ t.project_label }}</span>
             </div>
           } @empty {
-            <div style="font-size:12.5px;color:#8a8a8a;padding:16px 0">No tasks are assigned to you right now.</div>
+            <div style="font-size:12.5px;color:var(--pl-color-8a8a8a);padding:16px 0">No tasks are assigned to you right now.</div>
           }
         </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="col">
         <!-- ── burndown ───────────────────────────────────────────── -->
         @if (burndown(); as b) {
-          <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+          <div class="pane">
             <h4 style="margin:0 0 2px;font-size:15px">{{ b.title }}</h4>
-            <div style="font-size:11.5px;color:#8a8a8a">{{ b.subtitle }}</div>
+            <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">{{ b.subtitle }}</div>
             <svg viewBox="0 0 380 160" width="100%" height="160" style="margin-top:10px" aria-hidden="true">
-              <line x1="30" y1="130" x2="370" y2="130" stroke="#d8d8d8" />
-              <g stroke="#f0f0f0"><line x1="30" y1="20" x2="370" y2="20" /><line x1="30" y1="57" x2="370" y2="57" /><line x1="30" y1="94" x2="370" y2="94" /></g>
-              <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif"><text x="6" y="24">42</text><text x="6" y="61">28</text><text x="6" y="98">14</text></g>
-              <polyline points="40,20 370,130" fill="none" stroke="#c9c9c9" stroke-width="1" stroke-dasharray="4 3" />
-              <polyline [attr.points]="b.points" fill="none" stroke="#3d3d3d" stroke-width="2" />
-              <circle cx="322" cy="101" r="3.5" fill="#3d3d3d" />
-              <polyline [attr.points]="b.forecast" fill="none" stroke="#3d3d3d" stroke-width="2" stroke-dasharray="4 3" />
-              <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
+              <line x1="30" y1="130" x2="370" y2="130" stroke="var(--pl-color-d8d8d8)" />
+              <g stroke="var(--pl-color-f0f0f0)"><line x1="30" y1="20" x2="370" y2="20" /><line x1="30" y1="57" x2="370" y2="57" /><line x1="30" y1="94" x2="370" y2="94" /></g>
+              <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif"><text x="6" y="24">42</text><text x="6" y="61">28</text><text x="6" y="98">14</text></g>
+              <polyline points="40,20 370,130" fill="none" stroke="var(--pl-color-c9c9c9)" stroke-width="1" stroke-dasharray="4 3" />
+              <polyline [attr.points]="b.points" fill="none" stroke="var(--pl-color-3d3d3d)" stroke-width="2" />
+              <circle cx="322" cy="101" r="3.5" fill="var(--pl-color-3d3d3d)" />
+              <polyline [attr.points]="b.forecast" fill="none" stroke="var(--pl-color-3d3d3d)" stroke-width="2" stroke-dasharray="4 3" />
+              <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
                 @for (l of burndownLabels(); track $index) {
                   <text [attr.x]="l.x" y="148">{{ l.label }}</text>
                 }
@@ -63,39 +65,39 @@
         }
 
         <!-- ── open incidents ─────────────────────────────────────── -->
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="pane">
           <h4 style="margin:0 0 2px;font-size:15px">Open incidents</h4>
-          <div style="font-size:11.5px;color:#8a8a8a">Support inherits the project's history and SLA</div>
+          <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Support inherits the project's history and SLA</div>
           <div style="display:flex;flex-direction:column;gap:0;margin-top:8px">
             @for (i of incidents(); track i.id) {
-              <div style="padding:10px 0;border-bottom:1px dotted #dcdcdc">
+              <div class="row-rule" style="padding:12px 0">
                 <div style="display:flex;align-items:center;gap:10px">
                   <span class="tag" [class]="'tag ' + i.severity_tag_class">{{ i.severity }}</span>
                   <span style="font-size:13.5px;font-weight:600">{{ i.heading }}</span>
                 </div>
-                <div style="font-size:11.5px;color:#9a9a9a;margin-top:3px">{{ i.meta }}</div>
-                <span style="display:block;height:4px;background:#f0f0f0;border-radius:2px;margin-top:7px;overflow:hidden">
-                  <span style="display:block;height:4px" [style.width]="i.slaW" [style.background]="i.sla_col"></span>
+                <div style="font-size:11.5px;color:var(--pl-color-9a9a9a);margin-top:3px">{{ i.meta }}</div>
+                <span style="display:block;height:4px;background:var(--pl-color-f0f0f0);border-radius:2px;margin-top:7px;overflow:hidden">
+                  <span style="display:block;height:4px" [style.width]="i.slaW" [style.background]="(i.sla_col) | themeColor"></span>
                 </span>
               </div>
             } @empty {
-              <div style="font-size:12.5px;color:#8a8a8a;padding:12px 0">No open incidents on your systems.</div>
+              <div style="font-size:12.5px;color:var(--pl-color-8a8a8a);padding:12px 0">No open incidents on your systems.</div>
             }
           </div>
         </div>
 
         <!-- ── commercial detail ──────────────────────────────────── -->
         @if (commercial(); as c) {
-          <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px;background:#fafafa">
+          <div class="aside-note">
             <h4 style="margin:0 0 6px;font-size:15px">Commercial detail</h4>
             @if (c.money_shown) {
               <div *appHasPerm="'project_financials:restricted'">
-                <p style="margin:0;font-size:12.5px;color:#4a4a4a">{{ c.granted_body }}</p>
-                <div style="font-size:11px;color:#9a9a9a;margin-top:6px">{{ c.granted_note }}</div>
+                <p style="margin:0;font-size:12.5px;color:var(--pl-color-4a4a4a)">{{ c.granted_body }}</p>
+                <div style="font-size:11px;color:var(--pl-color-9a9a9a);margin-top:6px">{{ c.granted_note }}</div>
               </div>
             } @else {
-              <p style="margin:0;font-size:12.5px;color:#4a4a4a">{{ c.restricted_body }}</p>
-              <div style="font-size:11px;color:#9a9a9a;margin-top:6px">{{ c.restricted_note }}</div>
+              <p style="margin:0;font-size:12.5px;color:var(--pl-color-4a4a4a)">{{ c.restricted_body }}</p>
+              <div style="font-size:11px;color:var(--pl-color-9a9a9a);margin-top:6px">{{ c.restricted_note }}</div>
             }
           </div>
         }
@@ -103,9 +105,9 @@
     </div>
 
     <!-- ── requirement traceability ─────────────────────────────────── -->
-    <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px;margin-top:14px">
+    <div class="pane">
       <h4 style="margin:0 0 2px;font-size:15px">Requirement traceability</h4>
-      <div style="font-size:11.5px;color:#8a8a8a">From the sales conversation that produced it to the client signature that closed it</div>
+      <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">From the sales conversation that produced it to the client signature that closed it</div>
       <div style="overflow-x:auto;max-width:100%;margin-top:10px">
         <table class="table" style="min-width:640px">
           <thead>
@@ -114,14 +116,14 @@
           <tbody>
             @for (t of trace(); track t.id) {
               <tr>
-                <td><span style="color:#8a8a8a">{{ t.ref_id }}</span> · {{ t.text }}</td>
-                <td style="color:#6b6b6b">{{ t.came_from }}</td>
-                <td style="color:#6b6b6b">{{ t.impl }}</td>
-                <td style="color:#6b6b6b">{{ t.test }}</td>
+                <td><span style="color:var(--pl-color-8a8a8a)">{{ t.ref_id }}</span> · {{ t.text }}</td>
+                <td style="color:var(--pl-color-6b6b6b)">{{ t.came_from }}</td>
+                <td style="color:var(--pl-color-6b6b6b)">{{ t.impl }}</td>
+                <td style="color:var(--pl-color-6b6b6b)">{{ t.test }}</td>
                 <td><span class="tag" [class]="'tag ' + t.tag_class">{{ t.accepted }}</span></td>
               </tr>
             } @empty {
-              <tr><td colspan="5" style="color:#8a8a8a;font-size:12.5px;text-align:center;padding:26px 10px">No requirements are in the traceability view.</td></tr>
+              <tr><td colspan="5" style="color:var(--pl-color-8a8a8a);font-size:12.5px;text-align:center;padding:26px 10px">No requirements are in the traceability view.</td></tr>
             }
           </tbody>
         </table>

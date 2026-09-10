@@ -1,22 +1,29 @@
-:host { display: block; }
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pl-pane-gap);
+}
 
-.gap { margin-top: 14px; }
+/* The page rhythm comes from the host's gap; .gap survives only as a
+   structural wrapper so the flex column can space it. */
+.gap { display: contents; }
 
 .figures {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 20px;
+  gap: var(--pl-pane-gap);
 }
 
+/* Four figures floating on the ground beside the section panes. */
 .figure {
-  border: 1px dotted #c4c4c4;
-  border-radius: 16px;
-  padding: 16px;
-  background: #fff;
+  border: 0;
+  background: var(--pl-pane);
+  border-radius: var(--pl-radius-card);
+  box-shadow: var(--pl-lift-1);
+  padding: 18px;
 }
 
-.figure-label { font-size: 11.5px; color: #6b6b6b; }
+.figure-label { font-size: 11.5px; color: var(--pl-color-6b6b6b); }
 
 .figure-value {
   font-family: 'Roboto', sans-serif;
@@ -29,7 +36,7 @@
 .track {
   display: block;
   height: 5px;
-  background: #f0f0f0;
+  background: var(--pl-color-f0f0f0);
   border-radius: 5px;
   margin-top: 9px;
   overflow: hidden;
@@ -37,33 +44,34 @@
 
 .fill { display: block; height: 5px; }
 
-.figure-note { font-size: 11px; color: #9a9a9a; margin-top: 5px; }
+.figure-note { font-size: 11px; color: var(--pl-color-9a9a9a); margin-top: 5px; }
 
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 14px;
-  margin-top: 14px;
+  gap: var(--pl-pane-gap);
   align-items: start;
 }
 
-.chart { margin-top: 12px; display: block; }
+.chart { margin-top: 10px; display: block; }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 18px;
   font-size: 11px;
-  color: #6b6b6b;
-  border-top: 1px dotted #dcdcdc;
-  padding-top: 9px;
+  color: var(--pl-color-6b6b6b);
+  border-top: 1px solid var(--pl-rule);
+  padding-top: 12px;
+  margin-top: 4px;
 }
 
 .legend-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .swatch { width: 9px; height: 9px; flex: none; border-radius: 2px; }
 
 .billable { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
-.billable-item { border-top: 1px dotted #dcdcdc; padding-top: 12px; }
+.billable-item { border-top: 1px solid var(--pl-rule); padding-top: 14px; }
+.billable-item:first-child { border-top: 0; padding-top: 0; }
 
 .billable-head {
   display: flex;
@@ -81,25 +89,27 @@
   white-space: nowrap;
 }
 
-.billable-meta { font-size: 11.5px; color: #9a9a9a; margin: 2px 0 8px; }
+.billable-meta { font-size: 11.5px; color: var(--pl-color-9a9a9a); margin: 2px 0 8px; }
 
-.act { border-color: #b5b5b5; font-size: 12.5px; padding: 6px 12px; }
+.act { border-color: var(--pl-color-b5b5b5); font-size: 12.5px; padding: 6px 12px; }
 
-.table-wrap { margin-top: 10px; }
 
-.expenses { display: flex; flex-direction: column; gap: 0; margin-top: -2px; }
+
+.expenses { display: flex; flex-direction: column; gap: 0; }
 
 .expense {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 20px;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px dotted #dcdcdc;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--pl-rule);
 }
 
+.expense:last-child { border-bottom: 0; }
+
 .expense-what { font-size: 13.5px; }
-.expense-meta { font-size: 11.5px; color: #9a9a9a; }
+.expense-meta { font-size: 11.5px; color: var(--pl-color-9a9a9a); }
 
 .expense-value {
   font-family: 'Roboto', sans-serif;
@@ -108,7 +118,7 @@
   white-space: nowrap;
 }
 
-.none { font-size: 12.5px; color: #8a8a8a; padding: 14px 0; }
+.none { font-size: 12.5px; color: var(--pl-color-8a8a8a); padding: 14px 0; }
 
 @media (max-width: 1100px) {
   .figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -118,4 +128,139 @@
 @media (max-width: 720px) {
   .figures { grid-template-columns: minmax(0, 1fr); }
   .expense { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}
+
+/* ── responsive ─────────────────────────────────────────────────────────
+   The global foundations take .figures' four tiles to one column at 900px;
+   two-up still reads well on a tablet, so that band is restored. */
+@media (min-width: 561px) and (max-width: 900px) {
+  .figures { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+/* The invoiced-against-received chart is drawn on a ~520-unit canvas. Below
+   720px it keeps its natural size and scrolls inside the card rather than
+   shrinking its month labels past reading size. */
+@media (max-width: 720px) {
+  .chart-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  .chart-scroll > .chart { width: 520px; max-width: none; height: auto; }
+}
+
+@media (max-width: 560px) {
+  /* Name above value, then the action full width under both. */
+  .billable-head { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .billable .btn { width: 100%; min-height: 40px; }
+  .act { min-height: 40px; padding: 8px 14px; }
+
+  /* Expense rows are already one column here; the amount and the action sit
+     under the description with a comfortable target. */
+  .expense .btn { width: 100%; min-height: 40px; }
+}
+
+/* ── Billing cycle ────────────────────────────────────────────────────────
+   The seven stages read left to right as one pipeline. It is drawn at its
+   natural width and scrolls inside its own box; below the tablet breakpoint
+   it becomes a vertical list so no step is ever squeezed. */
+.block { display: contents; }
+
+.cycle-scroll {
+  overflow-x: auto; max-width: none;
+  -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+  /* The pipeline runs the full width of its pane and, when it must scroll,
+     runs off the pane's edge rather than stopping short of it. */
+  margin: 0 calc(var(--pl-pane-pad) * -1);
+  padding: 0 var(--pl-pane-pad) 4px;
+}
+
+.cycle {
+  display: flex; align-items: stretch; gap: 0;
+  list-style: none; margin: 0; padding: 0;
+}
+
+.stage {
+  position: relative; flex: 1 1 0; min-width: 0;
+  border: 0; border-radius: 12px;
+  padding: 13px 14px; margin-right: 20px;
+  background: var(--pl-pane-sunken); box-shadow: none;
+}
+.stage:last-child { margin-right: 0; }
+/* The one stage that needs attention is marked by a ring, not by lifting it
+   out of the pipeline. */
+.stage-alert {
+  background: var(--pl-color-efedea);
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.18);
+}
+
+.stage-label {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pl-color-6b6b6b);
+}
+.stage-value {
+  font-family: 'Roboto', sans-serif; font-size: 19px; font-weight: 600;
+  margin-top: 6px; white-space: nowrap;
+}
+.stage-count { font-size: 11.5px; color: var(--pl-color-3d3d3d); margin-top: 2px; }
+.stage-note { font-size: 10.5px; color: var(--pl-color-9a9a9a); margin-top: 5px; line-height: 1.4; }
+
+.stage-arrow {
+  position: absolute; right: -15px; top: 50%; transform: translateY(-50%);
+  font-size: 12px; color: var(--pl-color-b5b5b5); line-height: 1;
+}
+
+.blocked { margin-top: 20px; border-top: 1px solid var(--pl-rule); padding-top: 14px; }
+.blocked-head {
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pl-color-9a9a9a);
+  margin-bottom: 4px;
+}
+.blocked-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 14px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--pl-rule);
+}
+.blocked-row:last-child { border-bottom: 0; }
+.blocked-title { font-size: 13.5px; font-weight: 600; }
+.blocked-meta { font-size: 11.5px; color: var(--pl-color-9a9a9a); margin-top: 2px; }
+.blocked-value {
+  font-family: 'Roboto', sans-serif; font-size: 15px; font-weight: 600; white-space: nowrap;
+}
+
+/* ── Project breakdown ───────────────────────────────────────────────────── */
+table.breakdown { min-width: 1040px; }
+.brow { cursor: pointer; }
+.brow:focus-visible { outline: 2px solid var(--pl-color-111111); outline-offset: -2px; }
+.bproject { min-width: 190px; }
+.bname { font-size: 13.5px; font-weight: 600; }
+.bref { font-size: 11px; color: var(--pl-color-9a9a9a); }
+.bars { display: flex; flex-direction: column; gap: 3px; margin-top: 7px; max-width: 170px; }
+.bar { display: block; height: 4px; background: var(--pl-color-eeeeee); border-radius: 4px; overflow: hidden; }
+.bar-fill { display: block; height: 4px; }
+.breakdown .num { text-align: right; white-space: nowrap; }
+.breakdown .strong { font-weight: 600; }
+.breakdown .muted { color: var(--pl-color-6b6b6b); }
+
+@media (max-width: 900px) {
+  .cycle-scroll { margin: 0; padding: 0; overflow-x: visible; }
+  .cycle { min-width: 0 !important; flex-direction: column; gap: 8px; }
+  .stage { margin-right: 0; }
+  .stage-arrow { display: none; }
+  .blocked-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .blocked-row app-tag { grid-column: 2; justify-self: end; }
+}
+
+@media (max-width: 560px) {
+  .blocked-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .blocked-row app-tag { grid-column: 1; justify-self: start; }
+  .stage-value { font-size: 18px; }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────
+   The shared page header keeps its own flex row; below the tablet
+   breakpoint its title block and action row stack and stay left-aligned. */
+@media (max-width: 900px) {
+  :host ::ng-deep app-page-header .head {
+    flex-direction: column; align-items: flex-start; gap: 12px;
+  }
+  :host ::ng-deep app-page-header .actions { width: 100%; flex-wrap: wrap; flex: 1 1 auto; }
+}
+
+@media (max-width: 560px) {
+  :host ::ng-deep app-page-header .actions { gap: 8px; }
+  :host ::ng-deep app-page-header .actions .btn { flex: 1 1 100%; min-height: 42px; }
 }

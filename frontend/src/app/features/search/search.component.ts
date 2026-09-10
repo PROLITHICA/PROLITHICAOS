@@ -88,27 +88,41 @@ const SUBTITLE = 'One index over the whole company: organisations, opportunities
   styles: [`
     :host { display: block; }
     .title { font-size: 28px; margin: 0 0 4px; }
-    .sub { font-size: 12.5px; color: #8a8a8a; max-width: 74ch; }
+    .sub { font-size: 12.5px; color: var(--pl-color-8a8a8a); max-width: 74ch; }
     .box { margin-top: 16px; max-width: 560px; }
-    .search-input { background: #fafafa; border-color: #b5b5b5; }
-    .summary { font-size: 11.5px; color: #8a8a8a; margin-top: 10px; }
+    .search-input { background: var(--pl-color-fafafa); border-color: var(--pl-color-b5b5b5); }
+    .summary { font-size: 11.5px; color: var(--pl-color-8a8a8a); margin-top: 10px; }
     .state { margin-top: 14px; }
     .grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 14px; margin-top: 14px;
+      gap: var(--pl-pane-gap); margin-top: 16px;
     }
-    .group { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 18px; background: #fff; }
+    .group {
+      border: 0; background: var(--pl-pane);
+      border-radius: var(--pl-radius-card); box-shadow: var(--pl-lift-1);
+      padding: var(--pl-pane-pad);
+    }
     .group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
     .group-title { margin: 0; font-size: 15px; }
-    .group-count { font-size: 11px; color: #9a9a9a; }
+    .group-count { font-size: 11px; color: var(--pl-color-9a9a9a); }
     .rows { display: flex; flex-direction: column; margin-top: 6px; }
     .row {
       display: block; width: 100%; text-align: left; background: transparent; border: 0;
-      border-bottom: 1px dotted #dcdcdc; padding: 9px 0; font: inherit; cursor: pointer;
+      border-bottom: 1px solid var(--pl-rule); padding: 11px 0; font: inherit; cursor: pointer;
     }
-    .row:hover { background: #fafafa; }
+    .row:last-child { border-bottom: 0; }
+    .row:hover { background: rgba(17, 17, 17, 0.02); }
     .row-title { display: block; font-size: 12.5px; font-weight: 500; }
-    .row-meta { display: block; font-size: 11px; color: #9a9a9a; }
+    .row-meta { display: block; font-size: 11px; color: var(--pl-color-9a9a9a); }
+    @media (max-width: 900px) { .sub { max-width: none; } .box { max-width: none; } }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .group { padding: 14px; }
+      .group-head { flex-wrap: wrap; }
+      .group-title { font-size: 14.5px; }
+      .search-input { min-height: 44px; }
+      .row { padding: 11px 0; }
+    }
   `],
 })
 export class SearchComponent {

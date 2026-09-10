@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -53,8 +53,28 @@ export class ApiService {
     return this.http.delete<T>(this.url(path));
   }
 
-  /** Multipart upload — `file` plus any extra scalar fields. */
-  upload<T>(path: string, file: File, fields?: Params): Observable<T> {
+  /**
+   * Multipart upload reporting its progress, so an upload can show a bar and
+   * settle on a result. Emits HttpEvents; the caller reads UploadProgress then
+   * Response.
+   */
+  uploadEvents<T>(path: string, file: File, fields?: Params): Observable<HttpEvent<T>> {
+    return this.http.post<T>(this.url(path), this.multipart(file, fields), {
+      reportProgress: true,
+      observe: 'events',
+    });
+  }
+
+  /** A file the API streams back, with download progress. */
+  downloadEvents(path: string): Observable<HttpEvent<Blob>> {
+    return this.http.get(this.url(path), {
+      responseType: 'blob',
+      reportProgress: true,
+      observe: 'events',
+    });
+  }
+
+  private multipart(file: File, fields?: Params): FormData {
     const form = new FormData();
     form.append('file', file, file.name);
     if (fields) {
@@ -62,6 +82,11 @@ export class ApiService {
         if (value !== null && value !== undefined) form.append(key, String(value));
       }
     }
-    return this.http.post<T>(this.url(path), form);
+    return form;
+  }
+
+  /** Multipart upload — `file` plus any extra scalar fields. */
+  upload<T>(path: string, file: File, fields?: Params): Observable<T> {
+    return this.http.post<T>(this.url(path), this.multipart(file, fields));
   }
 }

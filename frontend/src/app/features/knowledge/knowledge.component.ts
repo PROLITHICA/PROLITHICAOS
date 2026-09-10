@@ -50,7 +50,7 @@ interface KnowledgeArticle {
     <div class="search">
       <input class="input" [placeholder]="placeholder()"
              [ngModel]="query()" (ngModelChange)="onQuery($event)"
-             style="background:#fafafa;border-color:#b5b5b5">
+             style="background:var(--pl-color-fafafa);border-color:var(--pl-color-b5b5b5)">
     </div>
 
     @if (loading()) {
@@ -106,22 +106,35 @@ interface KnowledgeArticle {
   `,
   styles: [`
     .title { font-size: 28px; margin: 0 0 4px; }
-    .sub { font-size: 12.5px; color: #8a8a8a; max-width: 76ch; }
+    .sub { font-size: 12.5px; color: var(--pl-color-8a8a8a); max-width: 76ch; }
     .search { margin-top: 16px; max-width: 520px; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 18px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--pl-pane-gap); margin-top: 18px; }
     .cards-wrap { margin-top: 18px; }
-    .group, .card-skel { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 18px; }
+    .group, .card-skel {
+      border: 0; background: var(--pl-pane);
+      border-radius: var(--pl-radius-card); box-shadow: var(--pl-lift-1);
+      padding: var(--pl-pane-pad);
+    }
     .card-skel { display: flex; flex-direction: column; gap: 10px; }
     .group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
     .group-head h4 { margin: 0; font-size: 15px; }
-    .count { font-size: 11px; color: #9a9a9a; }
-    .group-note { font-size: 11.5px; color: #8a8a8a; margin-top: 2px; }
+    .count { font-size: 11px; color: var(--pl-color-9a9a9a); }
+    .group-note { font-size: 11.5px; color: var(--pl-color-8a8a8a); margin-top: 2px; }
     .items { display: flex; flex-direction: column; margin-top: 8px; }
-    .item { padding: 9px 0; border-bottom: 1px dotted #dcdcdc; }
+    .item { padding: 11px 0; border-bottom: 1px solid var(--pl-rule); }
+    .item:last-child { border-bottom: 0; }
     .item-title { font-size: 12.5px; font-weight: 500; }
-    .item-meta { font-size: 11px; color: #9a9a9a; }
-    .item-empty { font-size: 11.5px; color: #9a9a9a; padding: 9px 0; }
-    .foot { font-size: 11.5px; color: #8a8a8a; margin-top: 14px; }
+    .item-meta { font-size: 11px; color: var(--pl-color-9a9a9a); }
+    .item-empty { font-size: 11.5px; color: var(--pl-color-9a9a9a); padding: 9px 0; }
+    .foot { font-size: 11.5px; color: var(--pl-color-8a8a8a); margin-top: 14px; }
+    @media (max-width: 900px) { .sub { max-width: none; } .search { max-width: none; } }
+    @media (max-width: 560px) {
+      .cards { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .group, .card-skel { padding: 14px; }
+      .group-head { flex-wrap: wrap; }
+      .group-head h4 { font-size: 14.5px; }
+      .item { padding: 10px 0; }
+    }
   `],
 })
 export class KnowledgeComponent {

@@ -71,6 +71,7 @@ export interface User {
   /** present on /api/auth/me/ and the login response */
   permissions?: PermissionMap;
   scope?: Scope;
+  visible_departments?: Department[];
   nav_groups?: NavGroup[];
   permission_rows?: PermissionRow[];
   home_view?: string;

@@ -1,9 +1,28 @@
 <div class="login">
-
+  <div class="particle-trail" aria-hidden="true">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none" focusable="false">
+      <defs>
+        <linearGradient id="portrait-particle-fade" x1="0" x2="1">
+          <stop offset="0" stop-color="white" stop-opacity="0"/>
+          <stop offset=".08" stop-color="white" stop-opacity=".8"/>
+          <stop offset=".35" stop-color="white" stop-opacity=".65"/>
+          <stop offset=".7" stop-color="white" stop-opacity=".18"/>
+          <stop offset="1" stop-color="white" stop-opacity="0"/>
+        </linearGradient>
+        <mask id="portrait-particle-mask"><rect x="450" y="0" width="950" height="900" fill="url(#portrait-particle-fade)"/></mask>
+      </defs>
+      <g fill="none" stroke="#d8dadd" stroke-linecap="round" mask="url(#portrait-particle-mask)">
+        @for (ribbon of particleRibbons; track $index) {
+          <path [attr.d]="ribbon.path" [attr.opacity]="ribbon.opacity" [attr.stroke-width]="ribbon.width"/>
+        }
+      </g>
+    </svg>
+  </div>
   <div class="panel">
     <div class="mark wordmark">Prolithica</div>
-    <div>
-      <h1 class="headline">The company, as one connected record.</h1>
+    <div class="portrait" aria-hidden="true"><img src="assets/images/login-wireframe-portrait.png" alt="" fetchpriority="high"></div>
+    <div class="introduction">
+      <h1 class="headline">One company.<br>One connected record.</h1>
       <p class="body">
         Opportunities become proposals, proposals become contracts, contracts become projects,
         and delivery becomes cash. Sign in and you see the part of it you are responsible for.
@@ -16,6 +35,9 @@
     <form class="form" (ngSubmit)="signIn()">
       <h2 class="form-title">Sign in</h2>
       <div class="form-note">Use your Prolithica account</div>
+      @if (backendUnavailable) {
+        <p class="error" role="status">This preview is online. Sign-in will be available once the company server is connected.</p>
+      }
 
       <div class="fields">
         <div class="field">
@@ -35,12 +57,12 @@
           <div class="error" role="alert">{{ error() }}</div>
         }
 
-        <button type="submit" class="btn btn-primary btn-block" [disabled]="busy()">
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="busy() || backendUnavailable">
           @if (busy()) { <span class="spin"></span> }
           Sign in
         </button>
 
-        <div class="mfa">Multi-factor authentication is required for finance and administration.</div>
+        <div class="mfa">Your workspace. Your projects. Your people.</div>
       </div>
     </form>
   </div>

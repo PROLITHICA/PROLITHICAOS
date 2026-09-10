@@ -18,10 +18,15 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
     </div>
   `,
   styles: [`
-    .empty { border: 1px dotted #c4c4c4; border-radius: 16px; padding: 40px 26px; text-align: center; background: #fff; }
+    .empty { border: 0; border-radius: 16px; background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: 46px 26px; text-align: center; }
     .empty-title { font-size: 15px; font-weight: 500; }
-    .empty-note { font-size: 12.5px; color: #8a8a8a; margin-top: 6px; max-width: 56ch; margin-inline: auto; }
+    .empty-note { font-size: 12.5px; color: var(--pl-color-8a8a8a); margin-top: 6px; max-width: 56ch; margin-inline: auto; }
     .empty-action { margin-top: 16px; }
+    @media (max-width: 560px) {
+      .empty { padding: 28px 16px; }
+      .empty-note { max-width: none; }
+      .empty-action { min-height: 42px; }
+    }
   `],
 })
 export class EmptyStateComponent {

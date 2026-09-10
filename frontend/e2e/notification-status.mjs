@@ -1,0 +1,30 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const page = await context.newPage();
+let unread = 2;
+try {
+  await page.route('**/api/notifications/', route => route.fulfill({ json: { title: 'Notifications', unread, groups: [{ heading: 'Actionable', count: '2', tag_class: 'tag-outline', items: [{ id: 'one', text: 'Test notification', meta: '', cta: 'Open', route: '/dashboard', weight: unread ? 500 : 400, read: !unread }] }] } }));
+  await page.route('**/api/notifications/read-all/', route => { unread = 0; return route.fulfill({ json: { toast: 'All notifications marked read.' } }); });
+  await page.goto('http://localhost:4200/login');
+  await page.locator('#login-email').fill('newtvnbrian@gmail.com');
+  await page.locator('#login-password').fill('12428newton');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.waitForURL('**/dashboard');
+  assert.equal(await page.locator('.presence').textContent().then(s=>s.trim()), 'Active · Online');
+  await page.locator('.notif').click();
+  await page.getByRole('button', { name: 'Mark all read', exact: true }).click();
+  await page.getByRole('button', { name: 'All caught up', exact: true }).waitFor();
+  assert.equal(await page.locator('.notif .badge').count(), 0);
+  await page.reload();
+  await page.locator('.notif').waitFor();
+  assert.equal(await page.locator('.notif .badge').count(), 0);
+  await context.setOffline(true);
+  await page.waitForFunction(() => document.querySelector('.presence')?.textContent.includes('Offline'));
+  await context.setOffline(false);
+  await page.waitForFunction(() => document.querySelector('.presence')?.textContent.includes('Active'));
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  console.log('PASS: bell, synchronized mark-all-read badge, reload, online/offline presence, mobile width');
+} finally { await browser.close(); }

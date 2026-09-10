@@ -19,23 +19,45 @@ The build contract lives in [SPEC.md](SPEC.md).
 Both halves, from the repository root:
 
 ```bash
-./dev.sh            # runs the API on :8000 and the app on :4200
+./dev.sh
 ```
 
-Or separately:
+It migrates, seeds, starts the API on :8000 and serves the app on :4200 — bound to
+all interfaces, so it is reachable from any device on the same network. The script
+prints both addresses when it starts:
+
+```
+    On this machine   http://localhost:4200
+    On this network   http://192.168.100.27:4200
+```
+
+Other devices need **only port 4200**: the app proxies `/api` to the API itself, so
+phones and tablets never talk to :8000 directly.
+
+Or run the halves separately:
 
 ```bash
 # API
 backend_venv/bin/python backend/manage.py migrate
 backend_venv/bin/python backend/manage.py seed
-backend_venv/bin/python backend/manage.py runserver 8000
+backend_venv/bin/python backend/manage.py runserver 0.0.0.0:8000
 
 # App  (node lives in /opt/homebrew/bin on this machine)
 export PATH=/opt/homebrew/bin:$PATH
-cd frontend && npm start          # proxies /api to http://localhost:8000
+cd frontend && npm start          # binds 0.0.0.0:4200, proxies /api to :8000
 ```
 
-Then open <http://localhost:4200>.
+`ALLOWED_HOSTS` defaults to `*` for development. Set `PROLITHICA_ALLOWED_HOSTS`,
+`PROLITHICA_TRUSTED_ORIGINS`, `PROLITHICA_SECRET_KEY` and `PROLITHICA_DEBUG=0`
+before putting this anywhere beyond a trusted network.
+
+## Responsive
+
+The interface works from a 390px phone up to a wide desktop. Above 1080px the
+sidebar is a fixed column; below it, it becomes an off-canvas drawer opened from
+the topbar and closed by choosing a destination or tapping the backdrop. Wide
+tables and charts scroll inside their own containers, so the page itself never
+scrolls sideways at any width.
 
 ## Signing in
 

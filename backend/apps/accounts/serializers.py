@@ -6,7 +6,7 @@ from .models import (
     AREAS, AuditEvent, Delegation, Department, NotificationPreference, Person, Role,
     RolePermission, User, UserSession,
 )
-from .navigation import nav_for
+from .navigation import nav_for, visible_departments
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -63,10 +63,11 @@ class MeSerializer(UserSerializer):
     nav_groups = serializers.SerializerMethodField()
     permission_rows = serializers.SerializerMethodField()
     home_view = serializers.SerializerMethodField()
+    visible_departments = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + [
-            "permissions", "scope", "nav_groups", "permission_rows", "home_view",
+            "permissions", "scope", "nav_groups", "permission_rows", "home_view", "visible_departments",
         ]
 
     def get_permissions(self, obj):
@@ -85,7 +86,10 @@ class MeSerializer(UserSerializer):
         ]
 
     def get_home_view(self, obj):
-        return obj.department.home_view if obj.department else "command"
+        return "dashboard"
+
+    def get_visible_departments(self, obj):
+        return DepartmentSerializer(visible_departments(obj), many=True).data
 
 
 class LoginSerializer(serializers.Serializer):

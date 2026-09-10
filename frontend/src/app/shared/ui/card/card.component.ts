@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-/** The dotted-hairline 16px card used everywhere in the design. */
+/** The floating pane used everywhere: depth instead of an outline. */
 @Component({
   selector: 'app-card',
   standalone: true,
@@ -20,10 +20,14 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     </div>
   `,
   styles: [`
-    .pl-card { border: 1px dotted #c4c4c4; border-radius: 16px; background: #fff; }
+    .pl-card { border: 0; border-radius: 16px; background: var(--pl-pane); box-shadow: var(--pl-lift-1); }
     .pl-card-head { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; align-items: baseline; }
     .pl-card-title { margin: 0 0 2px; font-size: 15px; }
-    .pl-card-sub { font-size: 11.5px; color: #8a8a8a; }
+    .pl-card-sub { font-size: 11.5px; color: var(--pl-color-8a8a8a); }
+    @media (max-width: 560px) {
+      .pl-card { padding: 14px !important; }
+      .pl-card-title { font-size: 14.5px; }
+    }
   `],
 })
 export class CardComponent {

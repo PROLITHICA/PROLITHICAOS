@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -50,7 +51,7 @@ const GRANT_FIELDS: FieldSpec[] = [
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [FormsModule, ModalComponent, SkeletonComponent, EmptyStateComponent, StatTileComponent],
+  imports: [ThemeColorPipe, FormsModule, ModalComponent, SkeletonComponent, EmptyStateComponent, StatTileComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="head">
@@ -74,7 +75,7 @@ const GRANT_FIELDS: FieldSpec[] = [
     <div class="search">
       <input class="input" placeholder="Search accounts by email or name"
              [ngModel]="query()" (ngModelChange)="onQuery($event)"
-             style="background:#fafafa;border-color:#b5b5b5">
+             style="background:var(--pl-color-fafafa);border-color:var(--pl-color-b5b5b5)">
     </div>
 
     @if (loading()) {
@@ -95,7 +96,8 @@ const GRANT_FIELDS: FieldSpec[] = [
         [actionLabel]="query() ? 'Clear the search' : ''"
         (action)="onQuery('')" />
     } @else {
-      <div class="scroll-x fade">
+      <div class="table-pane fade">
+      <div class="scroll-x">
         <table class="table" style="min-width:860px">
           <thead>
             <tr>
@@ -125,6 +127,7 @@ const GRANT_FIELDS: FieldSpec[] = [
         </table>
       </div>
       <div class="foot">{{ total() }} accounts · least privilege by default · every sensitive action is auditable.</div>
+      </div>
     }
 
     <app-modal [open]="createOpen()" title="New account"
@@ -143,9 +146,9 @@ const GRANT_FIELDS: FieldSpec[] = [
         <div class="pills">
           @for (r of roles(); track r.id) {
             <button type="button" class="pill"
-                    [style.background]="grantRoleSlug() === r.slug ? '#111' : '#fff'"
-                    [style.color]="grantRoleSlug() === r.slug ? '#fff' : '#333'"
-                    [style.border-color]="grantRoleSlug() === r.slug ? '#111' : '#b5b5b5'"
+                    [style.background]="(grantRoleSlug() === r.slug ? 'var(--pl-color-111111)' : 'var(--pl-color-ffffff)') | themeColor"
+                    [style.color]="(grantRoleSlug() === r.slug ? 'var(--pl-color-ffffff)' : 'var(--pl-color-333333)') | themeColor"
+                    [style.border-color]="(grantRoleSlug() === r.slug ? 'var(--pl-color-111111)' : 'var(--pl-color-b5b5b5)') | themeColor"
                     (click)="grantRoleSlug.set(r.slug)">{{ r.label }}</button>
           } @empty {
             <div class="foot" style="margin:0">No roles are available to grant.</div>
@@ -157,15 +160,24 @@ const GRANT_FIELDS: FieldSpec[] = [
   styles: [`
     .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
     .title { font-size: 28px; margin: 0 0 4px; }
-    .sub { font-size: 12.5px; color: #8a8a8a; max-width: 74ch; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 18px; }
-    .search { margin-top: 16px; max-width: 420px; margin-bottom: 16px; }
-    .grant-cta { border-color: #b5b5b5; font-size: 12px; padding: 5px 13px; white-space: nowrap; }
-    .foot { font-size: 11.5px; color: #8a8a8a; margin-top: 12px; }
+    .sub { font-size: 12.5px; color: var(--pl-color-8a8a8a); max-width: 74ch; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--pl-pane-gap); margin-top: 18px; }
+    /* The accounts table is a pane in its own right rather than a bare table
+       lying on the ground. */
+    .table-pane {
+      border: 0; background: var(--pl-pane);
+      border-radius: var(--pl-radius-card); box-shadow: var(--pl-lift-1);
+      padding: var(--pl-pane-pad);
+    }
+    .table-pane .scroll-x { overflow-x: auto; max-width: 100%; }
+    .search { margin-top: 16px; max-width: 420px; margin-bottom: var(--pl-pane-gap); }
+    @media (max-width: 560px) { .table-pane { padding: 14px; } }
+    .grant-cta { border-color: var(--pl-color-b5b5b5); font-size: 12px; padding: 5px 13px; white-space: nowrap; }
+    .foot { font-size: 11.5px; color: var(--pl-color-8a8a8a); margin-top: 14px; }
     .skel-stack { display: flex; flex-direction: column; gap: 10px; }
     .pills { display: flex; flex-wrap: wrap; gap: 7px; }
-    .pill { border: 1px dotted #b5b5b5; border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 11.5px; cursor: pointer; }
-    .pill:hover { border-color: #111; }
+    .pill { border: 1px dotted var(--pl-color-b5b5b5); border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 11.5px; cursor: pointer; }
+    .pill:hover { border-color: var(--pl-color-111111); }
   `],
 })
 export class UsersAdminComponent {

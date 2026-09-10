@@ -14,17 +14,46 @@
 
 /* ── tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --pl-bg: #ffffff;
-  --pl-ink: #111111;
-  --pl-mid: #3d3d3d;
-  --pl-muted: #6b6b6b;
-  --pl-muted-2: #8a8a8a;
-  --pl-muted-3: #9a9a9a;
-  --pl-hairline: #c4c4c4;
-  --pl-hairline-soft: #dcdcdc;
-  --pl-hairline-softer: #e0e0e0;
-  --pl-border-input: #b5b5b5;
-  --pl-surface: #fafafa;
+  --pl-bg: var(--pl-color-ffffff);
+  --pl-ink: var(--pl-color-111111);
+  --pl-mid: var(--pl-color-3d3d3d);
+  --pl-muted: var(--pl-color-6b6b6b);
+  --pl-muted-2: var(--pl-color-8a8a8a);
+  --pl-muted-3: var(--pl-color-9a9a9a);
+  --pl-hairline: var(--pl-color-c4c4c4);
+  --pl-hairline-soft: var(--pl-color-dcdcdc);
+  --pl-hairline-softer: var(--pl-color-e0e0e0);
+  --pl-border-input: var(--pl-color-b5b5b5);
+  --pl-surface: var(--pl-color-fafafa);
+
+  /* ── spatial ──────────────────────────────────────────────────────
+     The app sits on a recessed ground; every pane floats above it at its
+     own depth. Depth and whitespace carry the structure, so containers
+     no longer need an outline. The dotted treatment stays where it still
+     means something: inputs, secondary buttons and outline tags. */
+  --pl-ground: var(--pl-color-f2f1ef);
+  --pl-pane: var(--pl-color-ffffff);
+  --pl-pane-sunken: var(--pl-color-f7f6f4);
+
+  /* Elevation, lowest to highest. A pane's depth says what it is:
+     content sits at 1, the chrome that floats over it at 2, and anything
+     that takes the whole screen's attention at 3. */
+  --pl-lift-1:
+    0 1px 2px rgba(17, 17, 17, 0.04),
+    0 4px 12px rgba(17, 17, 17, 0.05);
+  --pl-lift-2:
+    0 1px 2px rgba(17, 17, 17, 0.05),
+    0 8px 24px rgba(17, 17, 17, 0.07);
+  --pl-lift-3:
+    0 2px 6px rgba(17, 17, 17, 0.07),
+    0 24px 60px rgba(17, 17, 17, 0.14);
+
+  /* What is left of a rule once the dotted outlines are gone. */
+  --pl-rule: rgba(17, 17, 17, 0.07);
+  --pl-rule-strong: rgba(17, 17, 17, 0.11);
+
+  --pl-pane-pad: 22px;
+  --pl-pane-gap: 16px;
   --pl-radius-card: 16px;
   --pl-radius-pill: 999px;
   --pl-sidebar: 252px;
@@ -34,10 +63,10 @@
 
 /* ── reset / base ───────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html, body { background: #ffffff; margin: 0; padding: 0; }
+html, body { background: var(--pl-ground); margin: 0; padding: 0; }
 body {
   font-family: var(--pl-font);
-  color: #111111;
+  color: var(--pl-color-111111);
   font-size: 14px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
@@ -47,12 +76,12 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
   letter-spacing: -0.01em;
 }
-a { color: #3d3d3d; }
-a:hover { color: #111111; }
+a { color: var(--pl-color-3d3d3d); }
+a:hover { color: var(--pl-color-111111); }
 button { font-family: inherit; }
 :focus { outline: none; }
-:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
-::selection { background: #dedede; }
+:focus-visible { outline: 2px solid var(--pl-color-111111); outline-offset: 2px; }
+::selection { background: var(--pl-color-dedede); }
 
 /* ── wordmark ───────────────────────────────────────────────────────── */
 .wordmark {
@@ -60,7 +89,7 @@ button { font-family: inherit; }
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: #111;
+  color: var(--pl-color-111111);
   line-height: 1.1;
 }
 
@@ -69,44 +98,44 @@ button { font-family: inherit; }
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   cursor: pointer; text-decoration: none;
   font-family: inherit; font-weight: 500; font-size: 14px; line-height: 1.2;
-  color: #111111;
+  color: var(--pl-color-111111);
   background: transparent; border: 1px solid transparent;
   border-radius: 999px; letter-spacing: 0.02em; padding: 9px 18px;
 }
 .btn svg { display: block; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-primary { background: #111111; color: #ffffff; }
-.btn-primary:hover { background: #333333; }
-.btn-primary:active { background: #000000; }
-.btn-secondary { border: 1px dotted #b5b5b5; }
+.btn-primary { background: var(--pl-color-111111); color: var(--pl-color-ffffff); }
+.btn-primary:hover { background: var(--pl-color-333333); }
+.btn-primary:active { background: var(--pl-color-000000); }
+.btn-secondary { border: 1px dotted var(--pl-color-b5b5b5); }
 .btn-secondary:hover { background: rgba(17,17,17,0.07); }
 .btn-secondary:active { background: rgba(17,17,17,0.14); }
-.btn-ghost { color: #333333; padding-inline: 5px; }
-.btn-ghost:hover { background: #f0f0f0; }
+.btn-ghost { color: var(--pl-color-333333); padding-inline: 5px; }
+.btn-ghost:hover { background: var(--pl-color-f0f0f0); }
 .btn-icon { width: 36px; height: 36px; padding: 0; }
 .btn-block { width: 100%; margin-top: 10px; }
 
 /* ── forms ──────────────────────────────────────────────────────────── */
 .field > label {
-  display: block; font-size: 12px; margin-bottom: 5px; color: #6b6b6b;
+  display: block; font-size: 12px; margin-bottom: 5px; color: var(--pl-color-6b6b6b);
 }
 .input {
   width: 100%; min-height: 36px; font: inherit; font-size: 14px;
-  color: #111111; caret-color: #111111; background: #ffffff;
-  border: 1px dotted #b5b5b5; border-radius: 999px; padding: 8px 16px;
+  color: var(--pl-color-111111); caret-color: var(--pl-color-111111); background: var(--pl-color-ffffff);
+  border: 1px dotted var(--pl-color-b5b5b5); border-radius: 999px; padding: 8px 16px;
 }
-.input::placeholder { color: #9a9a9a; opacity: 1; }
-.input:hover { border-color: #7a7a7a; }
-.input:focus-visible { border: 1px dotted #111111; outline-offset: 0; }
+.input::placeholder { color: var(--pl-color-9a9a9a); opacity: 1; }
+.input:hover { border-color: var(--pl-color-7a7a7a); }
+.input:focus-visible { border: 1px dotted var(--pl-color-111111); outline-offset: 0; }
 textarea.input { border-radius: 18px; padding: 12px 16px; min-height: 90px; resize: vertical; }
 select.input { appearance: none; }
 
 /* ── cards ──────────────────────────────────────────────────────────── */
 .card {
-  border: 1px dotted #c4c4c4;
+  border: 1px dotted var(--pl-color-c4c4c4);
   border-radius: 16px;
   padding: 18px;
-  background: #fff;
+  background: var(--pl-color-ffffff);
 }
 
 /* ── tags ───────────────────────────────────────────────────────────── */
@@ -116,28 +145,28 @@ select.input { appearance: none; }
   font-size: 11px; font-weight: 500; letter-spacing: 0.02em;
   white-space: nowrap;
 }
-.tag-accent { background: #ededed; color: #333333; }
-.tag-accent-2 { background: #111111; color: #ffffff; }
-.tag-outline { background: transparent; border: 1px dotted #a5a5a5; color: #444444; border-style: dotted; }
-.tag-neutral { background: #f5f5f5; color: #777777; }
+.tag-accent { background: var(--pl-color-ededed); color: var(--pl-color-333333); }
+.tag-accent-2 { background: var(--pl-color-111111); color: var(--pl-color-ffffff); }
+.tag-outline { background: transparent; border: 1px dotted var(--pl-color-a5a5a5); color: var(--pl-color-444444); border-style: dotted; }
+.tag-neutral { background: var(--pl-color-f5f5f5); color: var(--pl-color-777777); }
 
 /* ── tables ─────────────────────────────────────────────────────────── */
 .table { width: 100%; border-collapse: collapse; font-size: 14px; font-family: inherit; }
 .table th {
   text-align: left; font-family: inherit; font-size: 11px;
   letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500;
-  color: #6b6b6b; padding: 10px; border-bottom: 1px dotted #c4c4c4;
+  color: var(--pl-color-6b6b6b); padding: 10px; border-bottom: 1px dotted var(--pl-color-c4c4c4);
 }
-.table td { padding: 10px; border-bottom: 1px dotted #dcdcdc; }
-.table tbody tr:hover { background: #fafafa; }
+.table td { padding: 10px; border-bottom: 1px dotted var(--pl-color-dcdcdc); }
+.table tbody tr:hover { background: var(--pl-color-fafafa); }
 
 /* ── rules ──────────────────────────────────────────────────────────── */
-.hr { height: 0; border: 0; border-top: 1px dotted #c4c4c4; margin: 20px 0; }
+.hr { height: 0; border: 0; border-top: 1px dotted var(--pl-color-c4c4c4); margin: 20px 0; }
 
 /* ── animation ──────────────────────────────────────────────────────── */
 @keyframes pl-shimmer { 0% { background-position: -420px 0 } 100% { background-position: 420px 0 } }
 .skel {
-  background: linear-gradient(90deg, #f1f1f1 0%, #e6e6e6 40%, #f1f1f1 80%);
+  background: linear-gradient(90deg, var(--pl-color-f1f1f1) 0%, var(--pl-color-e6e6e6) 40%, var(--pl-color-f1f1f1) 80%);
   background-size: 420px 100%;
   animation: pl-shimmer 1.2s linear infinite;
   border-radius: 4px;
@@ -145,11 +174,11 @@ select.input { appearance: none; }
 @keyframes pl-spin { to { transform: rotate(360deg) } }
 .spin {
   width: 13px; height: 13px;
-  border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+  border: 2px solid rgba(255,255,255,0.35); border-top-color: var(--pl-color-ffffff);
   border-radius: 50%; animation: pl-spin 0.7s linear infinite;
 }
 .spin-dark {
-  border: 2px solid #e0e0e0; border-top-color: #3d3d3d;
+  border: 2px solid var(--pl-color-e0e0e0); border-top-color: var(--pl-color-3d3d3d);
 }
 @keyframes pl-boot { 0% { transform: translateX(-100%) } 60% { transform: translateX(10%) } 100% { transform: translateX(100%) } }
 .bootbar { animation: pl-boot 1.4s cubic-bezier(0.4,0,0.2,1) infinite; }
@@ -158,9 +187,212 @@ select.input { appearance: none; }
 
 /* ── shared page furniture ──────────────────────────────────────────── */
 .page-title { font-size: 28px; margin: 0 0 4px; }
-.page-subtitle { font-size: 12.5px; color: #8a8a8a; max-width: 74ch; }
-.muted { color: #6b6b6b; }
-.muted-2 { color: #8a8a8a; }
-.muted-3 { color: #9a9a9a; }
+.page-subtitle { font-size: 12.5px; color: var(--pl-color-8a8a8a); max-width: 74ch; }
+.muted { color: var(--pl-color-6b6b6b); }
+.muted-2 { color: var(--pl-color-8a8a8a); }
+.muted-3 { color: var(--pl-color-9a9a9a); }
 .scroll-x { overflow-x: auto; max-width: 100%; }
 .nowrap { white-space: nowrap; }
+
+/* ── Responsive foundations ──────────────────────────────────────────────
+   Applied globally so every screen inherits safe behaviour at small widths,
+   regardless of the grids each one declares. */
+
+/* Nothing may push the page sideways. Wide content scrolls inside its own box. */
+html, body { max-width: 100%; overflow-x: hidden; }
+
+img, svg, video, canvas { max-width: 100%; }
+
+/* Tables are the widest thing in this system; they scroll in place. */
+.scroll-x,
+.table-wrap { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 900px) {
+  /* Any fixed multi-column grid collapses to a single column. */
+  .kpi-grid, .columns, .stat-row, .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  /* Headers that pair a title with actions stack instead of squeezing. */
+  .head, .page-head, .list-head {
+    flex-direction: column; align-items: flex-start; gap: 12px;
+  }
+  .head-actions, .page-actions { width: 100%; flex-wrap: wrap; }
+}
+
+@media (max-width: 720px) {
+  h1, .title { font-size: clamp(22px, 6vw, 29px); }
+  h2 { font-size: clamp(19px, 5vw, 24px); }
+
+  /* Every table gets a horizontal scroller of its own on small screens. */
+  .table { min-width: 560px; }
+
+  /* Buttons reach a comfortable touch target. */
+  .btn { padding: 10px 18px; }
+  .btn-small { padding: 7px 13px; }
+
+  /* Inputs at 16px stop iOS zooming the page on focus. */
+  .input, input, select, textarea { font-size: 16px; }
+}
+
+@media (max-width: 560px) {
+  .btn-block, .actions .btn { width: 100%; }
+}
+
+/* ── spatial: floating panes on a recessed ground ─────────────────────
+   A pane is a white surface lifted off the ground. It carries its own
+   padding and radius, and needs no outline to be read as a container —
+   the depth does that work. */
+.pane {
+  background: var(--pl-pane);
+  border: 0;
+  border-radius: var(--pl-radius-card);
+  box-shadow: var(--pl-lift-1);
+  padding: var(--pl-pane-pad);
+}
+
+/* A pane nested inside a pane recedes instead of lifting further, so the
+   stack never reads as a pile of cards. */
+.pane .pane,
+.pane-sunken {
+  background: var(--pl-pane-sunken);
+  box-shadow: none;
+}
+
+/* Every container that used to be drawn with a dotted outline is now a
+   pane. Feature styles opt in by class; these cover the shared shapes. */
+.card,
+.section-card,
+.stat-tile,
+.kpi-card {
+  background: var(--pl-pane);
+  border: 0;
+  border-radius: var(--pl-radius-card);
+  box-shadow: var(--pl-lift-1);
+}
+
+/* ── rules ────────────────────────────────────────────────────────────
+   Dividers survive, but only just: enough to separate rows, not enough to
+   draw a grid over the content. */
+.table th { border-bottom: 1px solid var(--pl-rule-strong); }
+.table td { border-bottom: 1px solid var(--pl-rule); }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table th,
+.table td { padding-top: 14px; padding-bottom: 14px; }
+.table tbody tr:hover { background: rgba(17, 17, 17, 0.02); }
+
+hr,
+.rule { border: 0; border-top: 1px solid var(--pl-rule); }
+
+/* Shared monochrome palette: assets retain their original colours. */
+:root {
+  --pl-color-000000: #000000;
+  --pl-color-111111: #111111;
+  --pl-color-333333: #333333;
+  --pl-color-3d3d3d: #3d3d3d;
+  --pl-color-444444: #444444;
+  --pl-color-4a4a4a: #4a4a4a;
+  --pl-color-666666: #666666;
+  --pl-color-6b6b6b: #6b6b6b;
+  --pl-color-777777: #777777;
+  --pl-color-7a7a7a: #7a7a7a;
+  --pl-color-8a8a8a: #8a8a8a;
+  --pl-color-9a9a9a: #9a9a9a;
+  --pl-color-a5a5a5: #a5a5a5;
+  --pl-color-b5b5b5: #b5b5b5;
+  --pl-color-c4c4c4: #c4c4c4;
+  --pl-color-c9c9c9: #c9c9c9;
+  --pl-color-d6d6d6: #d6d6d6;
+  --pl-color-d8d8d8: #d8d8d8;
+  --pl-color-dcdcdc: #dcdcdc;
+  --pl-color-dedede: #dedede;
+  --pl-color-e0e0e0: #e0e0e0;
+  --pl-color-e6e6e6: #e6e6e6;
+  --pl-color-e7e7e7: #e7e7e7;
+  --pl-color-ececec: #ececec;
+  --pl-color-ededed: #ededed;
+  --pl-color-eeeeee: #eeeeee;
+  --pl-color-efedea: #efedea;
+  --pl-color-efefef: #efefef;
+  --pl-color-f0f0f0: #f0f0f0;
+  --pl-color-f1efec: #f1efec;
+  --pl-color-f1f1f1: #f1f1f1;
+  --pl-color-f2f1ef: #f2f1ef;
+  --pl-color-f2f2f2: #f2f2f2;
+  --pl-color-f4f4f4: #f4f4f4;
+  --pl-color-f5f5f5: #f5f5f5;
+  --pl-color-f6f6f6: #f6f6f6;
+  --pl-color-f7f6f4: #f7f6f4;
+  --pl-color-f7f7f7: #f7f7f7;
+  --pl-color-fafafa: #fafafa;
+  --pl-color-ffffff: #ffffff;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --pl-color-000000: #ffffff;
+  --pl-color-111111: #ffffff;
+  --pl-color-333333: #cccccc;
+  --pl-color-3d3d3d: #c2c2c2;
+  --pl-color-444444: #bbbbbb;
+  --pl-color-4a4a4a: #b5b5b5;
+  --pl-color-666666: #999999;
+  --pl-color-6b6b6b: #949494;
+  --pl-color-777777: #888888;
+  --pl-color-7a7a7a: #858585;
+  --pl-color-8a8a8a: #757575;
+  --pl-color-9a9a9a: #656565;
+  --pl-color-a5a5a5: #5a5a5a;
+  --pl-color-b5b5b5: #4a4a4a;
+  --pl-color-c4c4c4: #3b3b3b;
+  --pl-color-c9c9c9: #363636;
+  --pl-color-d6d6d6: #292929;
+  --pl-color-d8d8d8: #272727;
+  --pl-color-dcdcdc: #232323;
+  --pl-color-dedede: #212121;
+  --pl-color-e0e0e0: #1f1f1f;
+  --pl-color-e6e6e6: #191919;
+  --pl-color-e7e7e7: #181818;
+  --pl-color-ececec: #131313;
+  --pl-color-ededed: #121212;
+  --pl-color-eeeeee: #111111;
+  --pl-color-efedea: #101215;
+  --pl-color-efefef: #101010;
+  --pl-color-f0f0f0: #0f0f0f;
+  --pl-color-f1efec: #0e1013;
+  --pl-color-f1f1f1: #0e0e0e;
+  --pl-color-f2f1ef: #000000;
+  --pl-color-f2f2f2: #0d0d0d;
+  --pl-color-f4f4f4: #0b0b0b;
+  --pl-color-f5f5f5: #0a0a0a;
+  --pl-color-f6f6f6: #090909;
+  --pl-color-f7f6f4: #08090b;
+  --pl-color-f7f7f7: #080808;
+  --pl-color-fafafa: #050505;
+  --pl-color-ffffff: #000000;
+  --pl-ground: #000000;
+  --pl-pane: #000000;
+  --pl-bg: #000000;
+  --pl-pane-sunken: #101010;
+  --pl-rule: rgba(255,255,255,.12);
+  --pl-rule-strong: rgba(255,255,255,.2);
+  --pl-lift-1: 0 0 0 1px rgba(255,255,255,.12);
+  --pl-lift-2: 0 0 0 1px rgba(255,255,255,.16);
+  --pl-lift-3: 0 0 0 1px rgba(255,255,255,.2);
+}
+:root[data-theme="dark"] .topbar { background: rgba(0,0,0,.94); }
+:root[data-theme="dark"] :is(.nav-item, .dept, .btn-secondary):hover { background: #1a1a1a; }
+:root[data-theme="dark"] :is(.nav-item, .dept).active { background: #242424; }
+:root[data-theme="dark"] .table tbody tr:hover { background: #141414; }
+
+:root {
+  --pl-color-3a3a3a: #3a3a3a;
+  --pl-color-8f8f8f: #8f8f8f;
+  --pl-color-d4d4d4: #d4d4d4;
+  --pl-color-e4e4e4: #e4e4e4;
+}
+
+:root[data-theme="dark"] {
+  --pl-color-3a3a3a: #c5c5c5;
+  --pl-color-8f8f8f: #707070;
+  --pl-color-d4d4d4: #2b2b2b;
+  --pl-color-e4e4e4: #1b1b1b;
+}

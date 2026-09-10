@@ -1,16 +1,24 @@
 """Cross-app endpoints: the Command Centre, notifications, search and Ask Prolithica."""
-from rest_framework import viewsets
+from apps.accounts.permissions import HasDepartmentAccess
+
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils.dateparse import parse_date
 
 from apps.accounts.permissions import HasAreaPermission, user_has_level
 
+from .approvals import approve as approve_request
+from .approvals import decline
 from .dashboard import command_centre, take_decision
+from .form_options import options_for
 from .intelligence import answer, suggestions
-from .models import Notification
+from .models import ApprovalRequest, Notification
+from .my_day import my_day
 from .search import search
+from .serializers_approvals import ApprovalSerializer
 from .serializers_notifications import NotificationSerializer
 
 # The three notification groups the design renders, in order.
@@ -22,7 +30,8 @@ GROUPS = [
 
 
 class CommandCentreView(APIView):
-    permission_classes = APIView.permission_classes + [HasAreaPermission]
+    permission_classes = APIView.permission_classes + [HasAreaPermission] + [HasDepartmentAccess]
+    department_slug = "ceo"
     permission_area = "company_performance"
 
     def get(self, request):
@@ -95,6 +104,56 @@ class NotificationViewSet(viewsets.ModelViewSet):
         row.read = True
         row.save(update_fields=["read"])
         return Response({"notification": NotificationSerializer(row).data})
+
+
+class MyDayView(APIView):
+    """``GET /api/my-day/`` — today, for whoever is signed in."""
+
+    def get(self, request):
+        on = parse_date(request.query_params.get("date", "") or "") or None
+        return Response(my_day(request.user, on))
+
+
+class ApprovalViewSet(viewsets.ModelViewSet):
+    """Decisions waiting on you, and the work approving them releases."""
+
+    serializer_class = ApprovalSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = ApprovalRequest.objects.filter(assigned_to=self.request.user)
+        state = self.request.query_params.get("state")
+        return queryset.filter(state=state) if state else queryset
+
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        approval = self.get_object()
+        if approval.state != "pending":
+            return Response(
+                {"detail": "That decision has already been made."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        outcome = approve_request(approval, request.user)
+        return Response({"record": ApprovalSerializer(approval).data, "toast": outcome})
+
+    @action(detail=True, methods=["post"])
+    def decline(self, request, pk=None):
+        approval = self.get_object()
+        if approval.state != "pending":
+            return Response(
+                {"detail": "That decision has already been made."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        reason = (request.data.get("reason") or "").strip()
+        outcome = decline(approval, request.user, reason)
+        return Response({"record": ApprovalSerializer(approval).data, "toast": outcome})
+
+
+class FormOptionsView(APIView):
+    """``GET /api/form-options/`` — the records the create forms offer."""
+
+    def get(self, request):
+        return Response(options_for(request.user))
 
 
 class SearchView(APIView):

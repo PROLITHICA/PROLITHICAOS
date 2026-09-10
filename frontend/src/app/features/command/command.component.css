@@ -1,53 +1,51 @@
-:host { display: block; }
+:host { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
 
 .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
-.greeting { font-size: 12.5px; color: #3d3d3d; font-weight: 500; }
+.greeting { font-size: 12.5px; color: var(--pl-color-3d3d3d); font-weight: 500; }
 .title { font-size: 31px; margin: 4px 0 4px; }
-.sub { font-size: 12.5px; color: #8a8a8a; }
+.sub { font-size: 12.5px; color: var(--pl-color-8a8a8a); }
 .head-actions { display: flex; gap: 9px; flex: none; }
 .head-actions .btn { white-space: nowrap; }
-.head-actions .btn-secondary { border-color: #b5b5b5; }
-.head-actions .btn-primary { background: #111; }
-
-.body { margin-top: 20px; }
+.head-actions .btn-secondary { border-color: var(--pl-color-b5b5b5); }
+.head-actions .btn-primary { background: var(--pl-color-111111); }
 
 .kpi-grid {
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px; margin-top: 22px;
+  gap: var(--pl-pane-gap);
 }
 
 .columns {
   display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-  gap: 14px; margin-top: 14px; align-items: start;
+  gap: var(--pl-pane-gap); align-items: start;
 }
-.stack { display: flex; flex-direction: column; gap: 14px; }
+.stack { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
 
-.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11px; color: #6b6b6b; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11px; color: var(--pl-color-6b6b6b); }
 .legend .key { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 .legend .swatch { width: 14px; height: 2px; display: inline-block; flex: none; }
 
 .row-title { font-weight: 600; font-size: 13.5px; }
-.row-meta { font-size: 11.5px; color: #8a8a8a; }
-.row-when { font-size: 12px; color: #6b6b6b; }
-.btn-small { border-color: #b5b5b5; font-size: 12.5px; padding: 6px 12px; white-space: nowrap; }
-.table-empty { color: #8a8a8a; font-size: 12.5px; text-align: center; padding: 26px 10px; }
+.row-meta { font-size: 11.5px; color: var(--pl-color-8a8a8a); }
+.row-when { font-size: 12px; color: var(--pl-color-6b6b6b); }
+.btn-small { border-color: var(--pl-color-b5b5b5); font-size: 12.5px; padding: 6px 12px; white-space: nowrap; }
+.table-empty { color: var(--pl-color-8a8a8a); font-size: 12.5px; text-align: center; padding: 26px 10px; }
 
 .capacity { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
 .cap-top { display: flex; justify-content: space-between; font-size: 12px; gap: 12px; }
 .cap-pct { font-weight: 600; }
 .cap-track {
-  display: block; height: 6px; background: #f0f0f0; border-radius: 5px;
+  display: block; height: 6px; background: var(--pl-color-f0f0f0); border-radius: 5px;
   margin-top: 5px; overflow: hidden;
 }
 .cap-fill { display: block; height: 6px; }
-.cap-note { font-size: 10.5px; color: #9a9a9a; margin-top: 3px; }
+.cap-note { font-size: 10.5px; color: var(--pl-color-9a9a9a); margin-top: 3px; }
 
 .decisions { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
 .decision {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center;
 }
 .dec-text { font-size: 13px; }
-.dec-meta { font-size: 11px; color: #9a9a9a; }
+.dec-meta { font-size: 11px; color: var(--pl-color-9a9a9a); }
 
 @media (max-width: 1180px) {
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -64,9 +62,42 @@
 .ageing-legend { flex: 1 1 150px; min-width: 150px; display: flex; flex-direction: column; font-size: 12px; }
 .ageing-row {
   display: flex; align-items: center; gap: 9px;
-  padding: 7px 0; border-bottom: 1px dotted #e0e0e0;
+  padding: 7px 0; border-bottom: 1px solid var(--pl-rule);
 }
 .ageing-row:last-child { border-bottom: 0; }
 .ageing-row .dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
 .ageing-label { flex: 1; }
 .ageing-value { font-weight: 600; }
+
+/* ── responsive ─────────────────────────────────────────────────────────
+   The global foundations collapse .kpi-grid and .columns to one column at
+   900px. Between tablet and phone the four KPIs still read well two-up, so
+   that band is restored here; below 560px the single column stands. */
+@media (min-width: 561px) and (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+/* The margin chart is drawn on a 620-unit canvas. Squeezed into a phone it
+   would render its axis labels at about 6px, so below 720px it keeps its
+   natural size and scrolls inside the card instead. */
+@media (max-width: 720px) {
+  .chart-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  .chart-scroll > .margin-chart { width: 620px; max-width: none; height: auto; }
+}
+
+@media (max-width: 560px) {
+  .head { gap: 12px; }
+  .head-actions { width: 100%; flex-wrap: wrap; }
+  .head-actions .btn { flex: 1 1 150px; min-height: 40px; }
+
+  /* Decision rows put their action under the text rather than beside it. */
+  .decision { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .decision .btn { width: 100%; min-height: 40px; }
+
+  .btn-small { min-height: 40px; padding: 8px 14px; }
+
+  /* Donut and legend stack rather than sharing a cramped row. */
+  .ageing { gap: 14px; }
+  .ageing-donut { flex: 0 0 auto; margin: 0 auto; }
+  .ageing-legend { flex: 1 1 100%; min-width: 0; }
+}

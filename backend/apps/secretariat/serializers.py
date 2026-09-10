@@ -1,7 +1,7 @@
 """Serialisers for the Day desk."""
 from rest_framework import serializers
 
-from .models import Correspondence, Meeting, Reminder, SignatureRequest
+from .models import Correspondence, Meeting, Reminder, Report, ScheduleItem, SignatureRequest
 
 
 class MeetingSerializer(serializers.ModelSerializer):
@@ -48,3 +48,49 @@ class ReminderSerializer(serializers.ModelSerializer):
             "correspondence", "order", "created_at", "updated_at",
         ]
         read_only_fields = ["created_at", "updated_at"]
+
+
+class ScheduleItemSerializer(serializers.ModelSerializer):
+    time_label = serializers.CharField(read_only=True)
+    tag_class = serializers.CharField(read_only=True)
+    kind_label = serializers.CharField(source="get_kind_display", read_only=True)
+    person_name = serializers.CharField(source="person.display_name", read_only=True)
+    done = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ScheduleItem
+        fields = [
+            "id", "person", "person_name", "day", "start_time", "end_time", "time_label",
+            "kind", "kind_label", "title", "meta", "location", "attendees", "attached_ref",
+            "prepared_by", "state", "done", "done_at", "tag_class", "order",
+        ]
+        extra_kwargs = {
+            "end_time": {"required": False}, "meta": {"required": False},
+            "location": {"required": False}, "attendees": {"required": False},
+            "attached_ref": {"required": False}, "prepared_by": {"required": False},
+            "order": {"required": False}, "state": {"required": False},
+        }
+
+    def get_done(self, obj):
+        return obj.state == "done"
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    size_label = serializers.CharField(read_only=True)
+    kind_label = serializers.CharField(source="get_kind_display", read_only=True)
+    audience_label = serializers.CharField(source="get_audience_display", read_only=True)
+    uploaded_by_name = serializers.CharField(
+        source="uploaded_by.display_name", read_only=True, default=""
+    )
+    download_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Report
+        fields = [
+            "id", "title", "period", "kind", "kind_label", "audience", "audience_label",
+            "summary", "original_name", "size_bytes", "size_label", "published_on",
+            "uploaded_by_name", "download_url", "order",
+        ]
+
+    def get_download_url(self, obj):
+        return f"/api/reports/{obj.id}/download/" if obj.file else ""

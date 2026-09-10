@@ -92,7 +92,7 @@ class AuthEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["nav_groups"])
         self.assertEqual(response.data["permissions"]["user_admin"], "administer")
-        self.assertEqual(response.data["home_view"], "command")
+        self.assertEqual(response.data["home_view"], "dashboard")
 
     def test_signing_in_is_written_to_the_audit_trail(self):
         self.sign_in()

@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { of, switchMap } from 'rxjs';
@@ -39,7 +40,7 @@ export interface Closure {
 @Component({
   selector: 'app-closure',
   standalone: true,
-  imports: [SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './closure.component.html',
   styleUrl: './closure.component.css',
@@ -64,9 +65,9 @@ export class ClosureComponent {
   readonly items = computed(() =>
     (this.closure()?.items ?? []).map((item) => ({
       ...item,
-      fill: item.confirmed ? '#111' : 'transparent',
+      fill: item.confirmed ? 'var(--pl-color-111111)' : 'transparent',
       strike: item.confirmed ? 'line-through' : 'none',
-      col: item.confirmed ? '#9a9a9a' : '#111',
+      col: item.confirmed ? 'var(--pl-color-9a9a9a)' : 'var(--pl-color-111111)',
     })),
   );
 

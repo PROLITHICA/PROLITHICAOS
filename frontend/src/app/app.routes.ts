@@ -1,6 +1,6 @@
 import { ActivatedRouteSnapshot, ResolveFn, Routes } from '@angular/router';
 
-import { authGuard, permissionGuard } from './core/guards';
+import { authGuard, permissionGuard, departmentGuard } from './core/guards';
 
 /** Page titles, copied from TITLES in the reference design. */
 export const VIEW_TITLES: Record<string, string> = {
@@ -26,7 +26,7 @@ const recordTitle: ResolveFn<string> = (route: ActivatedRouteSnapshot) => {
 };
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'command' },
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
 
   {
     path: 'login',
@@ -39,9 +39,17 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./layout/shell.component').then((m) => m.ShellComponent),
     children: [
+      { path: 'dashboard', data: { title: 'Dashboard' }, loadComponent: () => import('./features/my-day/my-day.component').then(m => m.MyDayComponent) },
       // ── company ──────────────────────────────────────────────────────
       {
+        path: 'my-day',
+        data: { title: 'My day' },
+        loadComponent: () =>
+          import('./features/my-day/my-day.component').then((m) => m.MyDayComponent),
+      },
+      {
         path: 'command',
+        canActivate: [departmentGuard('ceo')],
         data: { title: VIEW_TITLES['command'] },
         loadComponent: () => import('./features/command/command.component').then((m) => m.CommandComponent),
       },
@@ -86,22 +94,25 @@ export const routes: Routes = [
       // ── departmental desks ───────────────────────────────────────────
       {
         path: 'finance',
-        canActivate: [permissionGuard('finance', 'read')],
+        canActivate: [departmentGuard('finance'), permissionGuard('finance', 'read')],
         data: { title: VIEW_TITLES['finance'] },
         loadComponent: () => import('./features/finance/finance.component').then((m) => m.FinanceComponent),
       },
       {
         path: 'tech',
+        canActivate: [departmentGuard('tech')],
         data: { title: VIEW_TITLES['tech'] },
         loadComponent: () => import('./features/tech/tech.component').then((m) => m.TechComponent),
       },
       {
         path: 'rnd',
+        canActivate: [departmentGuard('rnd')],
         data: { title: VIEW_TITLES['rnd'] },
         loadComponent: () => import('./features/rnd/rnd.component').then((m) => m.RndComponent),
       },
       {
         path: 'admin-desk',
+        canActivate: [departmentGuard('admin')],
         data: { title: VIEW_TITLES['admin'] },
         loadComponent: () => import('./features/admin-desk/admin-desk.component').then((m) => m.AdminDeskComponent),
       },
@@ -183,5 +194,5 @@ export const routes: Routes = [
     ],
   },
 
-  { path: '**', redirectTo: 'command' },
+  { path: '**', redirectTo: 'dashboard' },
 ];

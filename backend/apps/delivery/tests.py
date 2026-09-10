@@ -1,10 +1,13 @@
 """Delivery tests: scope, money masking and the two acceptance actions."""
 from decimal import Decimal
 
+from django.conf import settings
 from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.accounts.models import Role, RolePermission, User
+from apps.accounts.seed import run as seed_accounts
+from .seed import run as seed_delivery
 
 from .models import Milestone, Project, ProjectMember, Task
 
@@ -143,3 +146,114 @@ class DeliveryTestCase(TestCase):
             "report were updated.",
         )
         self.assertEqual(self.lims.updates.filter(kind="Stage").count(), 1)
+
+
+class ProjectEditingTests(TestCase):
+    """Creating and editing a project through the API."""
+
+    @classmethod
+    def setUpTestData(cls):
+        seed_accounts()
+        seed_delivery()
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def as_user(self, email):
+        token = self.client.post(
+            "/api/auth/login/", {"email": email, "password": settings.SEED_PASSWORD},
+            format="json",
+        ).data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+
+    def test_a_project_only_needs_a_name_and_gets_its_own_reference(self):
+        self.as_user(settings.DIRECTOR_EMAIL)
+        response = self.client.post(
+            "/api/projects/", {"name": "Treasury Costing Tool"}, format="json"
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(response.data["ref"].startswith("PRJ-"))
+        self.assertIn("initiated as", response.data["toast"])
+        self.assertTrue(Project.objects.filter(name="Treasury Costing Tool").exists())
+
+    def test_references_do_not_collide(self):
+        self.as_user(settings.DIRECTOR_EMAIL)
+        first = self.client.post("/api/projects/", {"name": "One"}, format="json").data["ref"]
+        second = self.client.post("/api/projects/", {"name": "Two"}, format="json").data["ref"]
+        self.assertNotEqual(first, second)
+
+    def test_editing_a_project_updates_it_and_returns_the_record(self):
+        self.as_user(settings.DIRECTOR_EMAIL)
+        project = Project.objects.get(ref="PRJ-041")
+        response = self.client.patch(
+            f"/api/projects/{project.id}/",
+            {"name": "LIMS phase two", "completion": 70},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["record"]["name"], "LIMS phase two")
+        project.refresh_from_db()
+        self.assertEqual(project.completion, 70)
+
+    def test_health_follows_the_margin_unless_it_is_set(self):
+        self.as_user(settings.DIRECTOR_EMAIL)
+        project = Project.objects.get(ref="PRJ-018")
+        self.client.patch(
+            f"/api/projects/{project.id}/", {"margin_actual": "12.0"}, format="json"
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.health, "At risk")
+
+        self.client.patch(
+            f"/api/projects/{project.id}/",
+            {"margin_actual": "12.0", "health": "Watch"}, format="json",
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.health, "Watch")
+
+    def test_a_percentage_outside_its_range_is_refused(self):
+        self.as_user(settings.DIRECTOR_EMAIL)
+        project = Project.objects.get(ref="PRJ-041")
+        response = self.client.patch(
+            f"/api/projects/{project.id}/", {"completion": 140}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("completion", response.data)
+
+    def test_budget_used_is_recalculated_from_planned_and_spent(self):
+        self.as_user(settings.DIRECTOR_EMAIL)
+        project = Project.objects.get(ref="PRJ-041")
+        self.client.patch(
+            f"/api/projects/{project.id}/",
+            {"budget_planned": "1000000", "budget_spent": "250000"}, format="json",
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.budget_used_pct, 25)
+
+    def test_a_researcher_cannot_edit_a_project(self):
+        self.as_user("milele.faith@prolithica.com")
+        project = Project.objects.get(ref="PRJ-041")
+        response = self.client.patch(
+            f"/api/projects/{project.id}/", {"name": "Renamed"}, format="json"
+        )
+        self.assertIn(response.status_code, (403, 404))
+        project.refresh_from_db()
+        self.assertNotEqual(project.name, "Renamed")
+
+    def test_form_options_offer_real_records(self):
+        self.as_user(settings.DIRECTOR_EMAIL)
+        response = self.client.get("/api/projects/form-options/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["managers"])
+        self.assertEqual(len(response.data["stages"]), 5)
+        self.assertIn("Healthy", response.data["health"])
+
+    def test_editing_is_written_to_the_audit_trail(self):
+        from apps.accounts.models import AuditEvent
+
+        self.as_user(settings.DIRECTOR_EMAIL)
+        project = Project.objects.get(ref="PRJ-041")
+        self.client.patch(f"/api/projects/{project.id}/", {"name": "Audited"}, format="json")
+        self.assertTrue(
+            AuditEvent.objects.filter(action="Edited project", record_ref="PRJ-041").exists()
+        )

@@ -12,43 +12,45 @@
     (action)="reload()" />
 } @else {
   @if (desk(); as d) {
-    <h1 style="font-size:28px;margin:0 0 4px">{{ d.title }}</h1>
-    <div style="font-size:12.5px;color:#8a8a8a">{{ d.subtitle }}</div>
+    <div class="title-block">
+      <h1 style="font-size:28px;margin:0 0 4px">{{ d.title }}</h1>
+      <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">{{ d.subtitle }}</div>
+    </div>
 
     <div class="rnd-row">
       <!-- ── active research ──────────────────────────────────────── -->
-      <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+      <div class="pane">
         <h4 style="margin:0 0 2px;font-size:15px">Active research</h4>
-        <div style="font-size:11.5px;color:#8a8a8a">Findings recorded here become requirements, then features</div>
+        <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Findings recorded here become requirements, then features</div>
         <div style="display:flex;flex-direction:column;gap:0;margin-top:8px">
           @for (r of research(); track r.id) {
-            <div style="padding:14px 0;border-bottom:1px dotted #dcdcdc">
+            <div class="row-rule" style="padding:15px 0">
               <div style="display:flex;justify-content:space-between;gap:14px;align-items:baseline">
                 <div style="font-size:14.5px;font-weight:600">{{ r.title }}</div>
                 <span class="tag" [class]="'tag ' + r.tag_class">{{ r.stage }}</span>
               </div>
-              <p style="margin:5px 0 0;font-size:12.5px;color:#4a4a4a">{{ r.body }}</p>
-              <div style="display:flex;justify-content:space-between;gap:14px;font-size:11px;color:#9a9a9a;margin-top:5px">
+              <p style="margin:5px 0 0;font-size:12.5px;color:var(--pl-color-4a4a4a)">{{ r.body }}</p>
+              <div style="display:flex;justify-content:space-between;gap:14px;font-size:11px;color:var(--pl-color-9a9a9a);margin-top:5px">
                 <span>{{ r.meta }}</span><span>{{ r.output }}</span>
               </div>
             </div>
           } @empty {
-            <div style="font-size:12.5px;color:#8a8a8a;padding:16px 0">No research is open at the moment.</div>
+            <div style="font-size:12.5px;color:var(--pl-color-8a8a8a);padding:16px 0">No research is open at the moment.</div>
           }
         </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="col">
         <!-- ── discovery to delivery ──────────────────────────────── -->
         @if (funnel(); as f) {
-          <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+          <div class="pane">
             <h4 style="margin:0 0 2px;font-size:15px">{{ f.title }}</h4>
-            <div style="font-size:11.5px;color:#8a8a8a">{{ f.subtitle }}</div>
+            <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">{{ f.subtitle }}</div>
             <svg viewBox="0 0 340 170" width="100%" height="170" style="margin-top:12px" aria-hidden="true">
               <g font-family="Roboto, sans-serif">
                 @for (bar of funnelRows(); track $index) {
-                  <rect x="10" [attr.y]="bar.y" [attr.width]="bar.width" height="24" [attr.fill]="bar.fill" />
-                  <text x="18" [attr.y]="bar.textY" font-size="11" [attr.fill]="bar.text_col">{{ bar.label }}</text>
+                  <rect x="10" [attr.y]="bar.y" [attr.width]="bar.width" height="24" [attr.fill]="(bar.fill) | themeColor" />
+                  <text x="18" [attr.y]="bar.textY" font-size="11" [attr.fill]="(bar.text_col) | themeColor">{{ bar.label }}</text>
                 }
               </g>
             </svg>
@@ -56,33 +58,33 @@
         }
 
         <!-- ── reusable patterns ──────────────────────────────────── -->
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="pane">
           <h4 style="margin:0 0 2px;font-size:15px">Reusable patterns</h4>
-          <div style="font-size:11.5px;color:#8a8a8a">Proven on delivered work, available to the next proposal</div>
+          <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Proven on delivered work, available to the next proposal</div>
           <div style="display:flex;flex-direction:column;gap:0;margin-top:8px">
             @for (p of patterns(); track p.id) {
-              <div style="padding:9px 0;border-bottom:1px dotted #dcdcdc">
+              <div class="row-rule" style="padding:11px 0">
                 <div style="font-size:13px;font-weight:600">{{ p.name }}</div>
-                <div style="font-size:11px;color:#9a9a9a">{{ p.meta }}</div>
+                <div style="font-size:11px;color:var(--pl-color-9a9a9a)">{{ p.meta }}</div>
               </div>
             } @empty {
-              <div style="font-size:12.5px;color:#8a8a8a;padding:10px 0">No patterns have been proven yet.</div>
+              <div style="font-size:12.5px;color:var(--pl-color-8a8a8a);padding:10px 0">No patterns have been proven yet.</div>
             }
           </div>
         </div>
 
         <!-- ── lessons recorded ───────────────────────────────────── -->
-        <div style="border:1px dotted #c4c4c4;border-radius:16px;padding:18px">
+        <div class="pane">
           <h4 style="margin:0 0 2px;font-size:15px">Lessons recorded</h4>
-          <div style="font-size:11.5px;color:#8a8a8a">Captured at closure, searchable by anyone</div>
+          <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Captured at closure, searchable by anyone</div>
           <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">
             @for (l of lessons(); track l.id) {
               <div>
-                <div style="font-size:12.5px;color:#333">{{ l.text }}</div>
-                <div style="font-size:10.5px;color:#9a9a9a;margin-top:2px">{{ l.meta }}</div>
+                <div style="font-size:12.5px;color:var(--pl-color-333333)">{{ l.text }}</div>
+                <div style="font-size:10.5px;color:var(--pl-color-9a9a9a);margin-top:2px">{{ l.meta }}</div>
               </div>
             } @empty {
-              <div style="font-size:12.5px;color:#8a8a8a">Nothing captured at closure yet.</div>
+              <div style="font-size:12.5px;color:var(--pl-color-8a8a8a)">Nothing captured at closure yet.</div>
             }
           </div>
         </div>

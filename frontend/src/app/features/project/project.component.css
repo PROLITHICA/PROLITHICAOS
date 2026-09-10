@@ -1,13 +1,25 @@
-.stack { display: flex; flex-direction: column; gap: 14px; }
-.skel-figures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
-.skel-charts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; }
+:host { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+
+.stack { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+.skel-figures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--pl-pane-gap); }
+.skel-charts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--pl-pane-gap); }
 
 .figures {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 20px;
+  gap: var(--pl-pane-gap);
 }
+/* The figure tiles are panes too, but narrow ones — they keep a tighter
+   inset than a full-width pane so the number is not crowded by its own
+   padding at five across. */
+.figure {
+  border: 0;
+  border-radius: var(--pl-radius-card);
+  background: var(--pl-pane);
+  box-shadow: var(--pl-lift-1);
+  padding: 18px;
+}
+
 .figure-value {
   font-family: 'Roboto', sans-serif;
   font-size: clamp(19px, 1.8vw, 25px);
@@ -19,33 +31,39 @@
 .charts {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-  gap: 14px;
-  margin-top: 14px;
+  gap: var(--pl-pane-gap);
   align-items: start;
 }
 
 .feed-row {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 14px;
-  margin-top: 14px;
+  gap: var(--pl-pane-gap);
   align-items: start;
 }
 
+/* The delivery stages already sit inside a pane, so they read as controls,
+   not containers: a hairline chip that the current stage outlines in ink. */
 .stage {
   flex: 1;
   text-align: left;
-  border: 1px dotted #e7e7e7;
+  border: 1px solid var(--pl-color-e7e7e7);
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 11px 13px;
   font: inherit;
   cursor: pointer;
 }
-.stage:hover { border-color: #111; }
+.stage:hover { border-color: var(--pl-color-111111); }
+
+
+/* List rows are separated, not boxed: the rule between them disappears at
+   the foot of the list so the pane closes on whitespace. */
+.row-rule { border-bottom: 1px solid var(--pl-rule); }
+.row-rule:last-child { border-bottom: 0; }
 
 .update-box {
-  background: #fafafa;
-  border-color: #b5b5b5;
+  background: var(--pl-color-fafafa);
+  border-color: var(--pl-color-b5b5b5);
   border-radius: 999px;
   font-family: inherit;
   min-height: 70px;
@@ -55,3 +73,39 @@
   .figures, .skel-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .charts, .feed-row, .skel-charts { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ── responsive ─────────────────────────────────────────────────────────
+   Five figure tiles go two-up on a tablet before the global foundations
+   take them to one column at phone size. */
+@media (min-width: 561px) and (max-width: 900px) {
+  .figures, .skel-figures { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+/* The two chart cards carry a 240-unit gauge and a 460-unit burndown; both
+   scale cleanly, so they only need to be told to keep their aspect. */
+.charts svg { max-width: 100%; height: auto; }
+
+@media (max-width: 900px) {
+  /* Header rows written inline as title-beside-actions become title above
+     actions. The inline display is overridden only inside this query. */
+  .head-flex > div { display: block !important; }
+  .head-flex > div > div + div { margin-top: 12px; }
+  .head-flex .btn { flex: 1 1 150px; }
+}
+
+/* The five delivery stages will not fit side by side below the desk width,
+   and stacking them loses the left-to-right reading of a pipeline, so the
+   strip scrolls in place. */
+@media (max-width: 900px) {
+  .stage-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .stage { flex: 0 0 148px; min-width: 148px; }
+}
+
+@media (max-width: 560px) {
+  .head-flex .btn { min-height: 40px; }
+  .stage { flex: 0 0 138px; min-width: 138px; }
+}
+
+.margin-plan { margin-top: 16px; text-align: right; font-size: 12px; color: var(--pl-ink); overflow-wrap: anywhere; }
+.margin-gauge { display: block; margin: 8px auto 0; }
+.margin-caption { margin: 8px 0 16px; text-align: center; font-size: 12px; line-height: 1.5; color: var(--pl-muted); overflow-wrap: anywhere; }

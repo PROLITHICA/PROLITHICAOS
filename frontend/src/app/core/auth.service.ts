@@ -71,16 +71,7 @@ export class AuthService {
 
   /** Route the user lands on after signing in — their department's home view. */
   homeRoute(user?: User | null): string {
-    const target = user ?? this.currentUser();
-    const home = target?.home_view || target?.department?.home_view || 'command';
-    const map: Record<string, string> = {
-      command: '/command',
-      finance: '/finance',
-      tech: '/tech',
-      rnd: '/rnd',
-      admin: '/admin-desk',
-    };
-    return map[home] ?? `/${home}`;
+    return '/dashboard';
   }
 
   private read(key: string): string | null {

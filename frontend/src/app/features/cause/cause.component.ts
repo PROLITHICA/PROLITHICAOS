@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of, switchMap } from 'rxjs';
@@ -69,7 +70,7 @@ const FLOOR = 150;
 @Component({
   selector: 'app-cause',
   standalone: true,
-  imports: [SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './cause.component.html',
   styleUrl: './cause.component.css',

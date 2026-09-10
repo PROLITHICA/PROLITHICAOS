@@ -35,3 +35,13 @@ export function permissionGuard(area: string, level: PermissionLevel = 'read'): 
     return router.createUrlTree([auth.homeRoute()]);
   };
 }
+
+/** Uses the same server-calculated department list as the sidebar. */
+export function departmentGuard(slug: string): CanActivateFn {
+  return () => {
+    const auth = inject(AuthService);
+    const router = inject(Router);
+    return auth.currentUser()?.visible_departments?.some(dept => dept.slug === slug)
+      || router.createUrlTree(['/dashboard']);
+  };
+}

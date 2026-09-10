@@ -50,6 +50,9 @@ class MoneyTextMixin:
 
 
 class Organisation(MoneyTextMixin, RefModel):
+    ref_prefix = "ORG"
+    ref_digits = 3
+
     TYPES = [
         ("Government", "Government"),
         ("Legislature", "Legislature"),
@@ -68,7 +71,9 @@ class Organisation(MoneyTextMixin, RefModel):
     ]
 
     name = models.CharField(max_length=160)
-    list_name = models.CharField(max_length=120, help_text="Name as it appears in the register")
+    list_name = models.CharField(
+        max_length=120, blank=True, help_text="Name as it appears in the register"
+    )
     short_name = models.CharField(
         max_length=80, blank=True,
         help_text="Name used when the organisation is a column on another register",
@@ -109,6 +114,12 @@ class Organisation(MoneyTextMixin, RefModel):
 
     def __str__(self):
         return self.list_name or self.name
+
+    def save(self, *args, **kwargs):
+        # The register name follows the organisation's name unless it is set apart.
+        if not self.list_name:
+            self.list_name = self.name
+        super().save(*args, **kwargs)
 
     @property
     def cross_name(self):
@@ -176,6 +187,9 @@ class OrganisationActivity(BaseModel):
 
 
 class Opportunity(MoneyTextMixin, RefModel):
+    ref_prefix = "OPP"
+    ref_digits = 3
+
     STAGES = [
         ("Discovery", "Discovery"),
         ("Qualification", "Qualification"),
@@ -269,6 +283,9 @@ class DiscoveryFinding(BaseModel):
 
 
 class Proposal(MoneyTextMixin, RefModel):
+    ref_prefix = "PRP"
+    ref_digits = 3
+
     STATES = [
         ("Accepted", "Accepted"),
         ("With client", "With client"),
@@ -282,7 +299,8 @@ class Proposal(MoneyTextMixin, RefModel):
         Opportunity, null=True, blank=True, on_delete=models.SET_NULL, related_name="proposals"
     )
     organisation = models.ForeignKey(
-        Organisation, on_delete=models.PROTECT, related_name="proposals"
+        Organisation, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="proposals",
     )
     name = models.CharField(max_length=120, help_text="Short name after the ref, e.g. 'LIMS'")
     title = models.CharField(max_length=200, blank=True)
@@ -306,6 +324,12 @@ class Proposal(MoneyTextMixin, RefModel):
 
     class Meta:
         ordering = ["order", "-created_at"]
+
+    def save(self, *args, **kwargs):
+        # A proposal answers an opportunity, so it belongs to that client.
+        if self.organisation_id is None and self.opportunity_id:
+            self.organisation = self.opportunity.organisation
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.ref} · {self.name}"
@@ -344,6 +368,9 @@ class ProposalVersion(MoneyTextMixin, BaseModel):
 
 
 class Contract(MoneyTextMixin, RefModel):
+    ref_prefix = "CTR"
+    ref_digits = 3
+
     STATES = [
         ("Active", "Active"),
         ("Renewing", "Renewing"),
@@ -353,7 +380,8 @@ class Contract(MoneyTextMixin, RefModel):
     ]
 
     organisation = models.ForeignKey(
-        Organisation, on_delete=models.PROTECT, related_name="contracts"
+        Organisation, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="contracts",
     )
     proposal = models.ForeignKey(
         Proposal, null=True, blank=True, on_delete=models.SET_NULL, related_name="contracts"
@@ -397,6 +425,12 @@ class Contract(MoneyTextMixin, RefModel):
 
     class Meta:
         ordering = ["order", "-created_at"]
+
+    def save(self, *args, **kwargs):
+        # A contract is signed against a proposal, and inherits its client.
+        if self.organisation_id is None and self.proposal_id:
+            self.organisation = self.proposal.organisation
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.ref} · {self.name}"
@@ -447,6 +481,9 @@ class ContractAmendment(MoneyTextMixin, BaseModel):
 
 class ChangeRequest(MoneyTextMixin, RefModel):
     """Scope only moves through here: assessed, priced, approved, written back."""
+    ref_prefix = "CR"
+    ref_digits = 3
+
 
     STATES = [
         ("Assessment", "Assessment"),

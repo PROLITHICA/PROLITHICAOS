@@ -192,3 +192,114 @@ def run():
             title=data.pop("title"),
             defaults={**data, "correspondence": parent, "order": index},
         )
+
+    seed_day()
+
+
+def seed_day():
+    """The executive's day, as the office would have arranged it."""
+    from datetime import date, time
+
+    from django.conf import settings
+    from django.utils import timezone
+
+    from apps.accounts.models import User
+    from apps.core.models import ApprovalRequest
+
+    from .models import Report, ScheduleItem
+
+    director = User.objects.filter(email=settings.DIRECTOR_EMAIL).first()
+    secretary = User.objects.filter(email="grace.mwende@prolithica.com").first()
+    finance = User.objects.filter(email="franklin.karanja@prolithica.com").first()
+    if director is None:
+        return
+
+    today = timezone.localdate()
+
+    # time, end, kind, title, meta, location, attached ref
+    DAY = [
+        (time(8, 30), time(9, 0), "meeting", "Executive stand-up",
+         "Newton, Franklin, Jude · agenda from the risk register", "Boardroom", ""),
+        (time(10, 0), time(10, 45), "call", "AN-PBO secretariat call",
+         "INV-2071 disbursement · minutes attach to ORG-006", "Call", "ORG-006"),
+        (time(11, 30), time(12, 30), "focus", "Board pack review",
+         "Q3 performance · pack prepared by Grace Mwende", "Office", ""),
+        (time(13, 30), time(14, 15), "review", "CR-014 pricing review",
+         "Decision required · attaches to CTR-041", "Boardroom", "CR-014"),
+        (time(15, 0), time(16, 0), "meeting", "DCS steering committee",
+         "Data extract dependency · Edwin presenting", "Client site", "PRJ-038"),
+        (time(16, 30), time(17, 0), "review", "Sign the AN-PBO renewal position",
+         "Renewal in 21 days · secretariat holding", "Office", "CTR-041"),
+    ]
+    for index, (start, end, kind, title, meta, where, ref) in enumerate(DAY):
+        ScheduleItem.objects.update_or_create(
+            person=director, day=today, start_time=start, title=title,
+            defaults={
+                "end_time": end, "kind": kind, "meta": meta, "location": where,
+                "attached_ref": ref, "order": index,
+                "prepared_by": secretary.display_name if secretary else "Executive office",
+                "created_by": secretary,
+            },
+        )
+
+    # Decisions waiting on the executive, each pointing at the record it moves.
+    APPROVALS = [
+        ("Price CR-014 on LIMS at R 0.52m",
+         "Assessed by delivery · the cost is already in the project",
+         "change_price", "520000", "4 days waiting", "Jude Ang’edu",
+         "crm", "ChangeRequest", "CR-014", "/changes/CR-014", "Approve"),
+        ("Approve the document indexing licence renewal",
+         "18% above the assumption recorded in PRP-114 v3",
+         "expense", "128400", "2 days waiting", "Edwin Ndiritu",
+         "finance", "Expense", "EXP-318", "/finance", "Approve"),
+        ("Release DCS milestone 3 for billing",
+         "Accepted by the client on 14 August · R 2.40m",
+         "billing", "2400000", "Today", "Franklin Karanja",
+         "finance", "BillableItem", "BILL-DCS-M3", "/finance", "Release"),
+        ("Send the CTR-041 amendment for signature",
+         "Prepared by Finance · covers the CR-014 change",
+         "signature", None, "1 day waiting", "Grace Mwende",
+         "secretariat", "SignatureRequest", "", "/admin-desk", "Send"),
+    ]
+    for index, row in enumerate(APPROVALS):
+        (title, detail, kind, amount, waiting, by, app, model, ref, route, cta) = row
+        ApprovalRequest.objects.update_or_create(
+            assigned_to=director, title=title,
+            defaults={
+                "detail": detail, "kind": kind, "amount": amount,
+                "waiting_label": waiting, "requested_by_name": by, "cta": cta,
+                "target_app": app, "target_model": model, "target_ref": ref,
+                "route": route, "order": index,
+            },
+        )
+
+    if finance is not None:
+        ApprovalRequest.objects.update_or_create(
+            assigned_to=finance, title="Confirm the AN-PBO payment plan",
+            defaults={
+                "detail": "INV-2071 · R 2.10m past terms · third reminder sent",
+                "kind": "renewal", "amount": "2100000", "waiting_label": "Today",
+                "requested_by_name": "Newton Brian", "cta": "Confirm",
+                "route": "/finance", "order": 0,
+            },
+        )
+
+    REPORTS = [
+        ("Q3 2026 performance report", "Q3 2026", "quarterly", "executive",
+         "Revenue, margin and pipeline against plan, with the LIMS position explained."),
+        ("Board pack · August 2026", "Aug 2026", "board", "executive",
+         "Papers for the August board meeting, circulated 29 August."),
+        ("Q2 2026 performance report", "Q2 2026", "quarterly", "finance",
+         "The quarter LIMS entered delivery. Margin held at 31%."),
+        ("DCS steering committee pack", "Aug 2026", "meeting", "company",
+         "Data extract dependency, schedule position and the adjudication proposal."),
+    ]
+    for index, (title, period, kind, audience, summary) in enumerate(REPORTS):
+        Report.objects.update_or_create(
+            title=title,
+            defaults={
+                "period": period, "kind": kind, "audience": audience, "summary": summary,
+                "published_on": date(2026, 8, 18), "order": index,
+                "uploaded_by": secretary,
+            },
+        )

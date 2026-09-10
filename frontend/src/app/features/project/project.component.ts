@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,14 +8,17 @@ import { catchError, map } from 'rxjs/operators';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { HasPermDirective } from '../../core/has-perm.directive';
+import { PageTitleService } from '../../core/page-title.service';
 import { PermissionService } from '../../core/permission.service';
 import { ToastService } from '../../core/toast.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state.component';
+import { FieldSpec } from '../../shared/ui/field/field.component';
+import { ModalComponent } from '../../shared/ui/modal/modal.component';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton.component';
 import { resolveProjectId } from './project.lookup';
 import {
   CostChart, DeliveryAction, MarginChart, ProgressUpdate, ProjectDetail, ProjectDocument,
-  ProjectFigure, ProjectPhase,
+  OptionRow, ProjectEditable, ProjectFigure, ProjectFormOptions, ProjectPhase,
 } from './project.models';
 
 /** Figures that carry money, and so hide entirely without `project_financials`. */
@@ -28,7 +32,8 @@ interface PhaseView extends ProjectPhase {
 @Component({
   selector: 'app-project',
   standalone: true,
-  imports: [FormsModule, HasPermDirective, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, FormsModule, HasPermDirective, SkeletonComponent, EmptyStateComponent,
+    ModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
@@ -40,6 +45,7 @@ export class ProjectComponent {
   private readonly toasts = inject(ToastService);
   private readonly auth = inject(AuthService);
   readonly perms = inject(PermissionService);
+  private readonly titles = inject(PageTitleService);
 
   readonly loading = signal(true);
   readonly error = signal('');
@@ -51,6 +57,18 @@ export class ProjectComponent {
   readonly stageBusy = signal(false);
 
   readonly ref = signal('');
+  readonly projectId = signal('');
+
+  // ── Editing ───────────────────────────────────────────────────────────
+  readonly editing = signal(false);
+  readonly editBusy = signal(false);
+  readonly options = signal<ProjectFormOptions | null>(null);
+  readonly editable = signal<ProjectEditable | null>(null);
+  readonly editReady = computed(() => !!this.editable() && !!this.options());
+
+  readonly canEdit = computed(
+    () => this.perms.can('assigned_projects', 'full') || this.perms.can('delivery', 'full'),
+  );
 
   readonly seesMoney = computed(() => this.perms.can('project_financials', 'restricted'));
 
@@ -73,11 +91,11 @@ export class ProjectComponent {
     const current = project.phase_index;
     return (project.phases ?? []).map((phase) => ({
       ...phase,
-      bg: phase.index === current ? '#f4f4f4' : '#fff',
-      col: phase.index > current ? '#8a8a8a' : '#111',
-      border: phase.index === current ? '#111' : '#e7e7e7',
-      barBg: '#efefef',
-      barCol: phase.index > current ? '#efefef' : '#111',
+      bg: phase.index === current ? 'var(--pl-color-f4f4f4)' : 'var(--pl-color-ffffff)',
+      col: phase.index > current ? 'var(--pl-color-8a8a8a)' : 'var(--pl-color-111111)',
+      border: phase.index === current ? 'var(--pl-color-111111)' : 'var(--pl-color-e7e7e7)',
+      barBg: 'var(--pl-color-efefef)',
+      barCol: phase.index > current ? 'var(--pl-color-efefef)' : 'var(--pl-color-111111)',
       barW: phase.bar_width,
     }));
   });
@@ -135,6 +153,8 @@ export class ProjectComponent {
         this.loading.set(false);
         if (!payload) return;
         this.project.set(payload.project);
+        this.projectId.set(payload.project.id ?? '');
+        this.titles.set(`${payload.project.name} · ${payload.project.ref}`);
         this.docs.set(payload.documents.results ?? []);
         this.docCount.set(payload.documents.count ?? (payload.documents.results ?? []).length);
       });
@@ -219,6 +239,147 @@ export class ProjectComponent {
   reload(): void {
     void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true })
       .then(() => window.location.reload());
+  }
+
+  // ── Editing ───────────────────────────────────────────────────────────
+  /** Fields for the edit sheet, using real records wherever a record exists. */
+  readonly editFields = computed<FieldSpec[]>(() => {
+    const options = this.options();
+    const stages = options?.stages ?? [];
+    const fields: FieldSpec[] = [
+      { k: 'name', l: 'Project name', p: 'e.g. Committee analytics portal' },
+      { k: 'manager_name', l: 'Project manager',
+        o: (options?.managers ?? []).map((m) => m.label) },
+      { k: 'stage', l: 'Delivery stage', o: stages },
+      { k: 'completion', l: 'Completion %', p: '62' },
+      { k: 'health', l: 'Health', o: options?.health ?? [] },
+      { k: 'state', l: 'State', o: (options?.states ?? []).map((s) => s.label) },
+    ];
+    if (this.seesMoney()) {
+      fields.push(
+        { k: 'contract_value', l: 'Contract value (R)', p: '15200000' },
+        { k: 'budget_planned', l: 'Budget planned (R)', p: '9600000' },
+        { k: 'budget_spent', l: 'Budget spent (R)', p: '7800000' },
+        { k: 'margin_actual', l: 'Margin now %', p: '21' },
+        { k: 'margin_planned', l: 'Margin planned %', p: '34' },
+      );
+    }
+    return fields;
+  });
+
+  /** The record's own writable values, loaded when the sheet opens. */
+  readonly editInitial = computed<Record<string, string>>(() => {
+    const raw = this.editable();
+    if (!raw) return {};
+    const values: Record<string, string> = {
+      name: raw.name ?? '',
+      manager_name: this.labelFor(this.options()?.managers, raw.manager),
+      stage: raw.stage ?? '',
+      completion: String(raw.completion ?? ''),
+      health: raw.health ?? '',
+      state: this.labelFor(this.options()?.states, raw.state),
+    };
+    if (this.seesMoney()) {
+      values['contract_value'] = this.plain(raw.contract_value);
+      values['budget_planned'] = this.plain(raw.budget_planned);
+      values['budget_spent'] = this.plain(raw.budget_spent);
+      values['margin_actual'] = this.plain(raw.margin_actual);
+      values['margin_planned'] = this.plain(raw.margin_planned);
+    }
+    return values;
+  });
+
+  openEdit(): void {
+    const id = this.projectId();
+    if (!id) return;
+    this.editable.set(null);
+    if (!this.options()) {
+      this.api.get<ProjectFormOptions>('/projects/form-options/')
+        .subscribe({ next: (o) => this.options.set(o), error: () => this.options.set(null) });
+    }
+    this.api.get<ProjectEditable>(`/projects/${id}/editable/`).subscribe({
+      next: (raw) => {
+        this.editable.set(raw);
+        this.editing.set(true);
+      },
+      error: () => this.toasts.show('Your role cannot edit this project.'),
+    });
+  }
+
+  closeEdit(): void {
+    this.editing.set(false);
+  }
+
+  saveEdit(values: Record<string, string>): void {
+    const id = this.projectId();
+    if (!id || this.editBusy()) return;
+
+    const body: Record<string, unknown> = {};
+    const put = (key: string, value: unknown) => {
+      if (value !== '' && value !== undefined && value !== null) body[key] = value;
+    };
+
+    put('name', values['name']?.trim());
+    put('stage', values['stage']);
+    put('health', values['health']);
+    if (values['completion'] !== undefined && values['completion'] !== '') {
+      body['completion'] = Number(values['completion']);
+    }
+
+    const manager = (this.options()?.managers ?? [])
+      .find((m) => m.label === values['manager_name']);
+    if (manager) body['manager'] = manager.value;
+
+    const state = (this.options()?.states ?? []).find((s) => s.label === values['state']);
+    if (state) body['state'] = state.value;
+
+    for (const key of ['contract_value', 'budget_planned', 'budget_spent',
+                       'margin_actual', 'margin_planned']) {
+      const raw = values[key];
+      if (raw !== undefined && raw !== '') body[key] = this.number(raw);
+    }
+
+    this.editBusy.set(true);
+    this.api.patch<{ record: ProjectDetail; toast: string }>(`/projects/${id}/`, body)
+      .subscribe({
+        next: (response) => {
+          this.editBusy.set(false);
+          this.editing.set(false);
+          this.project.set(response.record);
+          this.titles.set(`${response.record.name} · ${response.record.ref}`);
+          this.toasts.show(response.toast);
+        },
+        error: (error: unknown) => {
+          this.editBusy.set(false);
+          this.toasts.show(this.fieldError(error));
+        },
+      });
+  }
+
+  private labelFor(rows: OptionRow[] | undefined, value: unknown): string {
+    return (rows ?? []).find((row) => row.value === String(value ?? ''))?.label ?? '';
+  }
+
+  /** Money and percentages come back as display strings; edit them as plain numbers. */
+  private plain(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    return String(value).replace(/[^0-9.\-]/g, '');
+  }
+
+  private number(raw: string): number | string {
+    const cleaned = raw.replace(/[^0-9.\-]/g, '');
+    return cleaned === '' ? raw : cleaned;
+  }
+
+  private fieldError(error: unknown): string {
+    const body = (error as { error?: Record<string, unknown> })?.error;
+    if (body && typeof body === 'object') {
+      for (const [key, value] of Object.entries(body)) {
+        if (Array.isArray(value) && value.length) return `${key}: ${String(value[0])}`;
+        if (typeof value === 'string' && key === 'detail') return value;
+      }
+    }
+    return 'That change could not be saved.';
   }
 
   private message(error: unknown): string {

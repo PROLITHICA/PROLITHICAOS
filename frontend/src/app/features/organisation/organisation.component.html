@@ -32,7 +32,7 @@
     @for (figure of record.figures; track figure.label) {
       <div class="figure">
         <div class="figure-label">{{ figure.label }}</div>
-        <div class="figure-value" [style.color]="figure.col || '#111'">{{ figure.value }}</div>
+        <div class="figure-value" [style.color]="(figure.col || 'var(--pl-color-111111)') | themeColor">{{ figure.value }}</div>
         <div class="figure-note">{{ figure.note }}</div>
       </div>
     }

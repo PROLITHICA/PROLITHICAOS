@@ -1,25 +1,37 @@
-.stack { display: flex; flex-direction: column; gap: 14px; }
-.skel-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; }
+:host { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
 
-.rail { display: flex; gap: 2px; margin-top: 20px; }
+.stack { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+.col { display: flex; flex-direction: column; gap: var(--pl-pane-gap); }
+.skel-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--pl-pane-gap); }
+
+/* The six steps are one chain, not six containers: the rail is the pane and
+   the steps sit flat inside it, marked only by the rule above each one. */
+.rail {
+  display: flex;
+  gap: 6px;
+  border: 0;
+  border-radius: var(--pl-radius-card);
+  background: var(--pl-pane);
+  box-shadow: var(--pl-lift-1);
+  padding: 10px;
+}
 
 .rail-step {
   flex: 1;
   text-align: left;
-  border: 1px dotted #c4c4c4;
-  border-top: 3px solid #e7e7e7;
+  border: 0;
+  border-top: 3px solid var(--pl-color-e7e7e7);
   border-radius: 12px;
   padding: 11px 13px;
   font: inherit;
   cursor: pointer;
 }
-.rail-step:hover { background: #f6f6f6 !important; }
+.rail-step:hover { background: var(--pl-color-f6f6f6) !important; }
 
 .detail-row {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 14px;
-  margin-top: 14px;
+  gap: var(--pl-pane-gap);
   align-items: start;
 }
 
@@ -28,12 +40,30 @@
   grid-template-columns: 150px minmax(0, 1fr);
   gap: 16px;
   font-size: 12.5px;
-  padding: 8px 0;
-  border-bottom: 1px dotted #dcdcdc;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--pl-rule);
 }
+.field-row:last-child { border-bottom: 0; }
 
 @media (max-width: 1000px) {
   .rail { flex-wrap: wrap; }
-  .rail-step { flex: 1 1 30%; }
+  .rail-step { flex: 1 1 30%; min-width: 150px; }
   .detail-row, .skel-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Phone: the six-step rail stays one rail and scrolls horizontally inside
+   its own box, so the chain reads in order and the stage detail is not
+   pushed off the first screen. */
+@media (max-width: 560px) {
+  .rail {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  .rail-step { flex: 0 0 152px; scroll-snap-align: start; }
+
+  .field-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }

@@ -1,14 +1,18 @@
 """Delivery endpoints. Every list carries the design's `view` block; every write action
 returns the updated record and the toast copy the design shows."""
+from apps.accounts.permissions import HasDepartmentAccess
+
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import scope_queryset, user_has_level
 from apps.core.audit import record
+from apps.core.write_serializers import write_serializer_for
 
 from .models import (
     Closure, ClosureItem, MarginCause, Milestone, ProgressUpdate, Project, Requirement, Risk,
@@ -17,7 +21,8 @@ from .models import (
 from .serializers import (
     CauseScreenSerializer, ClosureItemSerializer, ClosureSerializer, MarginCauseSerializer,
     MilestoneListSerializer, ProgressUpdateSerializer, ProjectDetailSerializer,
-    ProjectListSerializer, ProjectSerializer, RequirementListSerializer,
+    ProjectListSerializer, ProjectSerializer, ProjectWriteSerializer,
+    RequirementListSerializer,
     RequirementTraceSerializer, RiskSerializer, SupportTicketSerializer, TaskSerializer,
 )
 
@@ -52,8 +57,23 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     permission_areas = ["assigned_projects", "delivery"]
     scope_field = "project_id"
 
+    #: Built on first use from the model, so a form can set any field it collects.
+    _write_serializer = None
+
     def get_queryset(self):
         return scope_queryset(self.queryset, self.request.user, self.scope_field)
+
+    def get_serializer_class(self):
+        """Read serializers are shaped for the design's tables; writes need the model."""
+        if self.action in ("create", "update", "partial_update"):
+            return self.write_serializer()
+        return super().get_serializer_class()
+
+    @classmethod
+    def write_serializer(cls):
+        if cls.__dict__.get("_write_serializer") is None:
+            cls._write_serializer = write_serializer_for(cls.queryset.model)
+        return cls._write_serializer
 
 
 class ProjectViewSet(DeliveryViewSet):
@@ -72,7 +92,108 @@ class ProjectViewSet(DeliveryViewSet):
             return ProjectListSerializer
         if self.action == "retrieve":
             return ProjectDetailSerializer
+        if self.action in ("create", "update", "partial_update"):
+            return ProjectWriteSerializer
         return ProjectSerializer
+
+    def create(self, request, *args, **kwargs):
+        form = self.get_serializer(data=request.data)
+        form.is_valid(raise_exception=True)
+        project = form.save(created_by=request.user)
+        record(request.user, "Initiated project", record_ref=project.ref,
+               detail=project.name, event_class="routine")
+        return Response(
+            {
+                "record": ProjectDetailSerializer(project, context=self.get_serializer_context()).data,
+                "ref": project.ref,
+                "id": str(project.id),
+                "toast": f"{project.name} initiated as {project.ref}. "
+                         "Its contract, client and delivery stages came with it.",
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    def update(self, request, *args, **kwargs):
+        project = self.get_object()
+        form = self.get_serializer(project, data=request.data, partial=kwargs.get("partial", False))
+        form.is_valid(raise_exception=True)
+        project = form.save()
+        record(request.user, "Edited project", record_ref=project.ref,
+               detail=", ".join(sorted(form.validated_data.keys()))[:180],
+               event_class="routine")
+        return Response(
+            {
+                "record": ProjectDetailSerializer(project, context=self.get_serializer_context()).data,
+                "ref": project.ref,
+                "toast": f"{project.name} updated. Every view of this project now reads "
+                         "the new detail.",
+            }
+        )
+
+    @action(detail=True, methods=["get"])
+    def editable(self, request, pk=None):
+        """The record's raw, writable values, for prefilling the edit form."""
+        project = self.get_object()
+        if not self.may_write(request.user):
+            raise PermissionDenied("Your role cannot edit projects.")
+        return Response(
+            ProjectWriteSerializer(project, context=self.get_serializer_context()).data
+        )
+
+    @staticmethod
+    def may_write(user):
+        return user_has_level(user, "assigned_projects", "full") or user_has_level(
+            user, "delivery", "full"
+        )
+
+    @action(detail=False, methods=["get"], url_path="form-options")
+    def form_options(self, request):
+        """Real records for the create and edit forms, rather than typed-in text."""
+        from apps.accounts.models import User
+        from django.apps import apps as django_apps
+
+        def rows(model_label, label_field, extra=None):
+            try:
+                model = django_apps.get_model(*model_label.split("."))
+            except LookupError:
+                return []
+            out = []
+            for obj in model.objects.all()[:100]:
+                label = getattr(obj, label_field, str(obj))
+                ref = getattr(obj, "ref", "")
+                out.append({
+                    "value": str(obj.id),
+                    "label": f"{ref} · {label}" if ref else label,
+                    **(extra(obj) if extra else {}),
+                })
+            return out
+
+        # Two accounts can carry the same name, so a repeated one says which is which.
+        people = list(User.objects.filter(is_active=True).order_by("display_name"))
+        seen = {}
+        for person in people:
+            seen[person.display_name] = seen.get(person.display_name, 0) + 1
+        managers = [
+            {
+                "value": str(person.id),
+                "label": person.display_name
+                if seen[person.display_name] == 1
+                else f"{person.display_name} · {person.email}",
+            }
+            for person in people
+        ]
+        return Response({
+            "organisations": rows("crm.Organisation", "name"),
+            "contracts": rows(
+                "crm.Contract", "title",
+                lambda c: {"organisation": str(c.organisation_id or ""),
+                           "contract_value": str(getattr(c, "value", "") or "")},
+            ),
+            "managers": managers,
+            "stages": list(PHASE_NAMES),
+            "health": [choice[0] for choice in Project.HEALTH],
+            "states": [{"value": v, "label": l} for v, l in Project.STATE],
+        })
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -496,7 +617,8 @@ class MarginCauseViewSet(DeliveryViewSet):
 class TechDeskView(APIView):
     """Engineering desk (design lines 801–886), built from real delivery rows."""
 
-    permission_classes = APIView.permission_classes + [HasDeliveryAccess]
+    permission_classes = APIView.permission_classes + [HasDeliveryAccess] + [HasDepartmentAccess]
+    department_slug = "tech"
     permission_areas = ["assigned_projects", "delivery", "technical_docs"]
 
     def get(self, request):
@@ -560,7 +682,8 @@ class RndDeskView(APIView):
     """Research desk (design lines 886–951). Delivery owns the funnel; research threads,
     patterns and lessons come from the knowledge app when it is installed."""
 
-    permission_classes = APIView.permission_classes + [HasDeliveryAccess]
+    permission_classes = APIView.permission_classes + [HasDeliveryAccess] + [HasDepartmentAccess]
+    department_slug = "rnd"
     permission_areas = ["research", "requirements", "delivery"]
     permission_level = "read"
 

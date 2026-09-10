@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../../core/auth.service';
+import { deployment } from '../../../core/deployment';
 import { ToastService } from '../../../core/toast.service';
 
 /** The design's split-screen sign-in, wired to `/api/auth/login/`. */
@@ -25,8 +26,26 @@ export class LoginComponent {
   readonly password = signal('');
   readonly busy = signal(false);
   readonly error = signal('');
-
+  readonly backendUnavailable = deployment.pages && !deployment.apiOrigin;
+  /** Static particle ribbons, batched into paths to keep the artwork lightweight. */
+  readonly particleRibbons = (() => {
+    let seed = 731;
+    const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    return Array.from({ length: 5 }, (_, layer) => ({
+      opacity: .18 + layer * .1,
+      width: .6 + layer * .2,
+      path: Array.from({ length: 1050 }, () => {
+        const t = random();
+        const x = 460 + t * 920;
+        const ribbon = random() > .52 ? 1 : -1;
+        const spread = (random() + random() + random() - 1.5) * (24 + t * 100);
+        const y = 410 + Math.sin(t * 4.8) * 48 + ribbon * (12 + Math.sin(t * 2.5) * 105) + spread;
+        return `M${x.toFixed(1)} ${y.toFixed(1)}h.1`;
+      }).join(' '),
+    }));
+  })();
   signIn(): void {
+    if (this.backendUnavailable) return;
     if (this.busy()) return;
     const email = this.email().trim();
     const password = this.password();

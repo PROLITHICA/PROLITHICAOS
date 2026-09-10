@@ -1,0 +1,175 @@
+<app-page-header
+  [kicker]="day.greeting()"
+  [title]="day.dateLabel() || 'My day'"
+  [subtitle]="day.summary()"
+  [large]="true">
+  <div class="dashboard-clock"><time [attr.datetime]="now().toISOString()">{{ clock() }}</time><span>Nairobi · EAT</span></div>
+  <button type="button" class="btn btn-secondary" (click)="reload()">Refresh</button>
+</app-page-header>
+
+@if (loading()) {
+  <div class="stack">
+    <app-skeleton height="320px" />
+    <app-skeleton height="220px" />
+    <app-skeleton height="200px" />
+  </div>
+} @else if (failed()) {
+  <div class="stack">
+    <app-empty-state
+      heading="Your day could not be loaded"
+      note="The desk did not answer. Nothing has been lost — try again, and the day comes back exactly as it was."
+      actionLabel="Try again"
+      (action)="reload()" />
+  </div>
+} @else {
+  <div class="stack">
+
+    <!-- ── Today ─────────────────────────────────────────────────────── -->
+    <app-section-card heading="Today" [subheading]="day.total() ? 'Tick each one off as you finish it.' : ''">
+      @if (day.total()) {
+        <div class="progress">
+          <app-progress-bar
+            [complete]="day.progressPct() + '%'"
+            [single]="true"
+            [caption]="allDone() ? day.progressLabel() + ' · the day is clear' : day.progressLabel()" />
+        </div>
+
+        <ol class="timeline">
+          @for (entry of day.schedule(); track entry.id) {
+            <li class="entry" [class.is-done]="entry.done">
+              <button
+                type="button"
+                class="tick"
+                [attr.aria-pressed]="entry.done"
+                [attr.aria-label]="tickLabel(entry)"
+                [title]="tickLabel(entry)"
+                (click)="toggle(entry)">
+                <span class="tick-dot">
+                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <polyline points="3,8.5 6.5,12 13,4.5" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+              </button>
+
+              <div class="when">
+                <div class="start">{{ entry.start }}</div>
+                <div class="span">{{ entry.time }}</div>
+              </div>
+
+              <div class="what">
+                <div class="entry-title">{{ entry.title }}</div>
+                @if (entry.meta) { <div class="entry-meta">{{ entry.meta }}</div> }
+                @if (facts(entry)) { <div class="entry-facts">{{ facts(entry) }}</div> }
+              </div>
+
+              <div class="entry-tag">
+                <app-tag [text]="entry.done ? 'Done' : entry.kind_label" [tagClass]="entry.tag_class" />
+              </div>
+            </li>
+          }
+        </ol>
+      } @else {
+        <app-empty-state
+          heading="Nothing is in your day"
+          note="No meetings, calls or reviews have been put in the diary for today. The approvals below are still yours to clear." />
+      }
+    </app-section-card>
+
+    <!-- ── Waiting on you ────────────────────────────────────────────── -->
+    <app-section-card
+      heading="Waiting on you"
+      [subheading]="day.approvals().length
+        ? 'Nothing behind these moves until you decide. Each one is carried out the moment you press it.'
+        : ''">
+      @if (day.approvals().length) {
+        <div class="approvals">
+          @for (item of day.approvals(); track item.id) {
+            <article class="approval">
+              <div class="ap-body">
+                <div class="ap-title">{{ item.title }}</div>
+                @if (item.detail) { <div class="ap-detail">{{ item.detail }}</div> }
+                <div class="ap-facts">
+                  <span class="ap-who">{{ item.requested_by }}</span>
+                  <span class="ap-dot">·</span>
+                  <span>{{ item.waiting }}</span>
+                </div>
+                <div class="ap-consequence">{{ consequence(item) }}</div>
+              </div>
+
+              <div class="ap-side">
+                @if (item.amount) {
+                  <div class="ap-amount">{{ item.amount }}</div>
+                } @else {
+                  <app-tag [text]="item.kind" [tagClass]="'tag-outline'" />
+                }
+                <div class="ap-actions">
+                  <button type="button" class="btn btn-primary ap-go"
+                          [disabled]="!!day.busy()" (click)="approve(item)">
+                    @if (day.busy() === item.id) { <span class="spin"></span> }
+                    {{ item.cta }}
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-small ap-decline"
+                          [disabled]="!!day.busy()" (click)="openDecline(item)">
+                    {{ declining() === item.id ? 'Cancel' : 'Decline' }}
+                  </button>
+                </div>
+              </div>
+
+              @if (declining() === item.id) {
+                <div class="decline fade">
+                  <app-field
+                    label="Why are you declining?"
+                    name="reason-{{ item.id }}"
+                    kind="area"
+                    surface="var(--pl-color-fafafa)"
+                    placeholder="{{ item.requested_by }} will read this."
+                    [value]="reason()"
+                    (valueChange)="reason.set($event)" />
+                  <div class="decline-actions">
+                    <button type="button" class="btn btn-secondary btn-small" (click)="closeDecline()">
+                      Keep it waiting
+                    </button>
+                    <button type="button" class="btn btn-primary btn-small"
+                            [disabled]="!canDecline() || !!day.busy()" (click)="sendDecline(item)">
+                      @if (day.busy() === item.id) { <span class="spin"></span> }
+                      Send decline
+                    </button>
+                  </div>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      } @else {
+        <app-empty-state
+          heading="Nothing is waiting on you"
+          note="Every approval has been cleared. Anything new lands here the moment it is raised." />
+      }
+    </app-section-card>
+
+    <!-- ── the focus block: the executive's projects ─────────────────── -->
+    @if (day.focus(); as focus) {
+      <app-section-card [heading]="focus.heading" [subheading]="focus.note">
+        @if (focus.rows.length) {
+          <div class="focus">
+            @for (row of focus.rows; track row.title) {
+              <button type="button" class="focus-row" (click)="openFocus(row)">
+                <span class="fr-body">
+                  <span class="fr-title">{{ row.title }}</span>
+                  <span class="fr-meta">{{ row.meta }}</span>
+                </span>
+                <span class="fr-value">{{ row.value }}</span>
+                <app-tag [text]="row.state" [tagClass]="row.tag_class" />
+              </button>
+            }
+          </div>
+        } @else {
+          <app-empty-state
+            heading="No projects are assigned to you"
+            note="Projects appear here as soon as one is put in your name." />
+        }
+      </app-section-card>
+    }
+  </div>
+}

@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import HasAreaPermission, scope_queryset, user_has_level
 from apps.core.audit import record
+from apps.core.write_serializers import write_serializer_for
 from apps.core.money import format_money, mask_if_needed
 
 from .forms_config import FORMS
@@ -58,10 +59,21 @@ class RecordViewSet(viewsets.ModelViewSet):
     list_serializer_class = None
     detail_serializer_class = None
 
+    #: Built on first use from the model, so a form can set any field it collects.
+    _write_serializer = None
+
     def get_serializer_class(self):
+        if self.action in ("create", "update", "partial_update"):
+            return self.write_serializer()
         if self.action in ("list",) and self.list_serializer_class:
             return self.list_serializer_class
         return self.detail_serializer_class or self.list_serializer_class
+
+    @classmethod
+    def write_serializer(cls):
+        if cls._write_serializer is None:
+            cls._write_serializer = write_serializer_for(cls.queryset.model)
+        return cls._write_serializer
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)

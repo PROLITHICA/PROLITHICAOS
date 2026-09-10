@@ -126,3 +126,113 @@ class Reminder(BaseModel):
 
     def __str__(self):
         return self.title
+
+
+class ScheduleItem(BaseModel):
+    """One entry in a person's day.
+
+    The secretariat builds an executive's day; the executive works through it and
+    ticks each entry off. The entry keeps whoever put it there, so it is always
+    clear who arranged what.
+    """
+
+    KIND = [
+        ("meeting", "Meeting"),
+        ("review", "Review"),
+        ("focus", "Focus time"),
+        ("travel", "Travel"),
+        ("call", "Call"),
+        ("personal", "Personal"),
+    ]
+    STATE = [
+        ("scheduled", "Scheduled"),
+        ("done", "Done"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    person = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="schedule"
+    )
+    day = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField(null=True, blank=True)
+    kind = models.CharField(max_length=12, choices=KIND, default="meeting")
+    title = models.CharField(max_length=160)
+    meta = models.CharField(max_length=240, blank=True)
+    location = models.CharField(max_length=120, blank=True)
+    attendees = models.CharField(max_length=240, blank=True)
+    attached_ref = models.CharField(max_length=40, blank=True)
+    prepared_by = models.CharField(max_length=80, blank=True)
+    state = models.CharField(max_length=12, choices=STATE, default="scheduled")
+    done_at = models.DateTimeField(null=True, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["day", "start_time", "order"]
+
+    def __str__(self):
+        return f"{self.day} {self.start_time:%H:%M} · {self.title}"
+
+    @property
+    def time_label(self):
+        if self.end_time:
+            return f"{self.start_time:%H:%M}–{self.end_time:%H:%M}"
+        return f"{self.start_time:%H:%M}"
+
+    @property
+    def tag_class(self):
+        if self.state == "done":
+            return "tag-accent"
+        if self.state == "cancelled":
+            return "tag-neutral"
+        return "tag-outline" if self.kind != "meeting" else "tag-accent-2"
+
+
+class Report(BaseModel):
+    """A document the secretariat circulates: a board pack, a quarterly report.
+
+    These are real files. They are uploaded once and downloaded by whoever the
+    audience allows, so the same pack everyone discusses is the one on file.
+    """
+
+    KIND = [
+        ("quarterly", "Quarterly report"),
+        ("board", "Board pack"),
+        ("meeting", "Meeting pack"),
+        ("minutes", "Minutes"),
+        ("plan", "Plan"),
+    ]
+    AUDIENCE = [
+        ("executive", "Executive only"),
+        ("company", "Everyone"),
+        ("finance", "Finance and executive"),
+    ]
+
+    title = models.CharField(max_length=200)
+    period = models.CharField(max_length=40, blank=True, help_text="e.g. Q3 2026")
+    kind = models.CharField(max_length=12, choices=KIND, default="quarterly")
+    audience = models.CharField(max_length=12, choices=AUDIENCE, default="executive")
+    summary = models.CharField(max_length=300, blank=True)
+    file = models.FileField(upload_to="reports/", null=True, blank=True)
+    original_name = models.CharField(max_length=200, blank=True)
+    size_bytes = models.PositiveIntegerField(default=0)
+    published_on = models.DateField(null=True, blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reports",
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "-published_on", "title"]
+
+    def __str__(self):
+        return f"{self.title} · {self.period}" if self.period else self.title
+
+    @property
+    def size_label(self):
+        if not self.size_bytes:
+            return "—"
+        if self.size_bytes >= 1_000_000:
+            return f"{self.size_bytes / 1_000_000:.1f} MB"
+        return f"{max(1, self.size_bytes // 1000)} KB"

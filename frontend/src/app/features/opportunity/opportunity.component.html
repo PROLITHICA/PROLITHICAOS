@@ -35,7 +35,7 @@
 
   <div class="stages">
     @for (stage of record.stages; track $index) {
-      <div class="stage" [style.border-color]="stage.border" [style.background]="stage.bg">
+      <div class="stage" [style.border-color]="(stage.border) | themeColor" [style.background]="(stage.bg) | themeColor">
         <div class="stage-n">{{ stage.n }}</div>
         <div class="stage-name" [style.font-weight]="stage.weight">{{ stage.name }}</div>
         <div class="stage-when">{{ stage.when }}</div>

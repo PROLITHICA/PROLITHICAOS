@@ -18,6 +18,9 @@ PHASE_NAMES = ["Discovery", "Core build", "Integration", "Rollout", "Support han
 
 
 class Project(RefModel):
+    ref_prefix = "PRJ"
+    ref_digits = 3
+
     HEALTH = [
         ("Healthy", "Healthy"),
         ("Watch", "Watch"),
@@ -84,6 +87,16 @@ class Project(RefModel):
     def __str__(self):
         return f"{self.ref} · {self.name}"
 
+    @staticmethod
+    def health_for(margin_actual):
+        """Health follows the margin unless someone sets it deliberately."""
+        margin = float(margin_actual or 0)
+        if margin < 25:
+            return "At risk", TagClass.ACCENT_2
+        if margin < 32:
+            return "Watch", TagClass.OUTLINE
+        return "Healthy", TagClass.ACCENT
+
     @property
     def phase_label(self):
         return f"stage {self.phase_index + 1} of {len(PHASE_NAMES)} · {PHASE_NAMES[self.phase_index]}"
@@ -141,6 +154,9 @@ class Phase(BaseModel):
 
 
 class Milestone(RefModel):
+    ref_prefix = "MS"
+    ref_digits = 3
+
     ACCEPTANCE = [
         ("Accepted", "Accepted"),
         ("In review", "In review"),
@@ -157,7 +173,7 @@ class Milestone(RefModel):
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="milestones")
-    code = models.CharField(max_length=8)
+    code = models.CharField(max_length=8, blank=True)
     name = models.CharField(max_length=120)
 
     planned_date = models.DateField(null=True, blank=True)
@@ -188,6 +204,13 @@ class Milestone(RefModel):
     class Meta:
         ordering = ["project__order", "order"]
 
+    def save(self, *args, **kwargs):
+        # A milestone is known by its position on the project: M1, M2, M3 ...
+        if not self.code and self.project_id:
+            taken = Milestone.objects.filter(project_id=self.project_id).exclude(pk=self.pk)
+            self.code = f"M{taken.count() + 1}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.code} · {self.name}"
 
@@ -203,6 +226,9 @@ class Milestone(RefModel):
 
 
 class Requirement(RefModel):
+    ref_prefix = "REQ"
+    ref_digits = 3
+
     STATUS = [
         ("Accepted", "Accepted"),
         ("In test", "In test"),
@@ -263,6 +289,9 @@ class Requirement(RefModel):
 
 
 class Task(RefModel):
+    ref_prefix = "TASK"
+    ref_digits = 3
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks")
     requirement = models.ForeignKey(
         Requirement, null=True, blank=True, on_delete=models.SET_NULL, related_name="tasks"
@@ -327,6 +356,9 @@ class ProgressUpdate(BaseModel):
 
 
 class Risk(RefModel):
+    ref_prefix = "RSK"
+    ref_digits = 3
+
     SEVERITY = [("Critical", "Critical"), ("High", "High"), ("Medium", "Medium"), ("Low", "Low")]
 
     project = models.ForeignKey(
@@ -438,6 +470,9 @@ class ClosureItem(BaseModel):
 
 
 class SupportTicket(RefModel):
+    ref_prefix = "INC"
+    ref_digits = 3
+
     SEVERITY = [("P1", "P1"), ("P2", "P2"), ("P3", "P3"), ("P4", "P4")]
     STATE = [
         ("In progress", "In progress"),

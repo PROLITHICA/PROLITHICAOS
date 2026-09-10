@@ -1,111 +1,329 @@
-<h1 class="title">Day desk</h1>
-<div class="sub">Meetings, signatures and correspondence for the executive office. Every item is attached to its record.</div>
-
-@if (loading()) {
-  <div class="three">
-    @for (i of [1, 2, 3]; track i) { <app-skeleton width="100%" height="280px" /> }
+<!-- the one compose form, used by both "add" and "edit" -->
+<ng-template #composerFields>
+  <div class="grid">
+    <app-field label="From" name="from" kind="time" [value]="draft().start_time"
+               surface="var(--pl-color-ffffff)" (valueChange)="setDraft('start_time', $event)" />
+    <app-field label="To" name="to" kind="time" [value]="draft().end_time"
+               surface="var(--pl-color-ffffff)" (valueChange)="setDraft('end_time', $event)" />
+    <app-field label="Where" name="where" kind="text" [value]="draft().location"
+               surface="var(--pl-color-ffffff)" placeholder="Boardroom" (valueChange)="setDraft('location', $event)" />
+    <div class="span3">
+      <app-field label="What is it" name="what" kind="text" [value]="draft().title"
+                 surface="var(--pl-color-ffffff)" placeholder="Board pack review"
+                 (valueChange)="setDraft('title', $event)" />
+    </div>
+    <div class="span3">
+      <app-field label="Kind" name="kind" kind="options" [options]="entryKindLabels"
+                 [value]="draftKindLabel()" (valueChange)="setDraftKind($event)" />
+    </div>
+    <div class="span2">
+      <app-field label="Who it is with" name="with" kind="text" [value]="draft().attendees"
+                 surface="var(--pl-color-ffffff)" placeholder="Franklin, Jude"
+                 (valueChange)="setDraft('attendees', $event)" />
+    </div>
+    <app-field label="Attaches to" name="attaches" kind="text" [value]="draft().attached_ref"
+               surface="var(--pl-color-ffffff)" placeholder="CTR-041"
+               (valueChange)="setDraft('attached_ref', $event)" />
   </div>
-  <div class="wide"><app-skeleton width="100%" height="220px" /></div>
-} @else {
-  @if (blocked(); as fail) {
-  <div class="wide"><app-empty-state [heading]="fail.heading" [note]="fail.note" /></div>
-  } @else {
-  <div class="three">
-    <div class="panel">
-      <h4 class="panel-title">Today</h4>
-      <div class="panel-sub">Minutes attach to the record under discussion</div>
-      <div class="stack">
-        @if (meetings().failure; as fail) {
-          <div class="denied">{{ fail.heading }} — {{ fail.note }}</div>
-        } @else {
-          @for (meeting of meetings().rows; track meeting.id) {
-            <div class="meeting">
-              <span class="meeting-time">{{ meeting.time }}</span>
-              <div>
-                <div class="meeting-title">{{ meeting.title }}</div>
-                <div class="meeting-meta">{{ meeting.meta }}</div>
+
+  @if (entryError()) { <div class="err">{{ entryError() }}</div> }
+
+  <div class="composer-foot">
+    <button type="button" class="btn btn-secondary" (click)="closeComposer()">Cancel</button>
+    <button type="button" class="btn btn-primary" (click)="saveEntry()" [disabled]="savingEntry()">
+      @if (savingEntry()) { <span class="spin"></span> }
+      {{ savingEntry() ? 'Saving…' : (draft().id ? 'Save changes' : 'Add to the day') }}
+    </button>
+  </div>
+</ng-template>
+
+<app-page-header
+  kicker="Office & Secretariat"
+  title="Secretary's desk"
+  [subtitle]="'Build the executive\'s day, publish the packs the company reads, then clear what is waiting on a signature.'" />
+
+<!-- ── 1. The executive's day ─────────────────────────────────────────── -->
+<section class="block">
+  <app-section-card heading="The executive's day" [subheading]="nextUp()">
+    <div section-actions class="sec-actions">
+      @if (canArrange()) {
+        <button type="button" class="btn btn-primary" (click)="openAdd()"
+                [disabled]="composing() === 'new' || !personId()">+ Add entry</button>
+      }
+    </div>
+
+    <!-- whose day, and which day -->
+    <div class="daybar">
+      <div class="daybar-who">
+        <app-field label="Whose day" name="person" kind="select"
+                   [options]="personOptions()" [value]="personLabelValue()"
+                   surface="var(--pl-color-fafafa)" (valueChange)="onPerson($event)" />
+      </div>
+      <div class="daybar-when">
+        <app-field label="Day" name="day" kind="date" [value]="day()"
+                   surface="var(--pl-color-fafafa)" (valueChange)="onDay($event)" />
+      </div>
+      <div class="daybar-steps">
+        <button type="button" class="btn btn-secondary step" (click)="stepDay(-1)"
+                aria-label="Previous day">‹</button>
+        <button type="button" class="btn btn-secondary step wide" (click)="goToday()"
+                [disabled]="isToday()">Today</button>
+        <button type="button" class="btn btn-secondary step" (click)="stepDay(1)"
+                aria-label="Next day">›</button>
+      </div>
+    </div>
+
+    <div class="daylabel">
+      <span class="daylabel-date">{{ dayLabel() }}</span>
+      <span class="daylabel-count">{{ dayLine() }}</span>
+    </div>
+
+    @if (!canArrange()) {
+      <div class="notice">You can read this day. Arranging it needs the office's meetings permission.</div>
+    }
+
+    <!-- the add form, opened by one click -->
+    @if (composing() === 'new') {
+      <div class="composer fade">
+        <div class="composer-head">New entry on {{ dayLabel() }}</div>
+        <ng-container [ngTemplateOutlet]="composerFields" />
+      </div>
+    }
+
+    @if (dayLoading()) {
+      <div class="stack-skel">
+        @for (i of [1, 2, 3, 4]; track i) { <app-skeleton width="100%" height="54px" /> }
+      </div>
+    } @else if (dayFailure()) {
+      <app-empty-state [heading]="dayFailure()!.heading" [note]="dayFailure()!.note" />
+    } @else {
+      <div class="day">
+        @for (entry of entries(); track entry.id) {
+          @if (composing() === entry.id) {
+            <div class="composer fade">
+              <div class="composer-head">Editing “{{ entry.title }}”</div>
+              <ng-container [ngTemplateOutlet]="composerFields" />
+            </div>
+          } @else {
+            <div class="entry" [class.entry-done]="entry.done">
+              <div class="entry-time">
+                <span class="entry-from">{{ entry.time_label }}</span>
+                <app-tag [text]="entry.kind_label" [tagClass]="entry.tag_class" />
+              </div>
+              <div class="entry-body">
+                <div class="entry-title">{{ entry.title }}</div>
+                @if (entryMeta(entry)) { <div class="entry-meta">{{ entryMeta(entry) }}</div> }
+                @if (entry.attached_ref) {
+                  <div class="entry-ref">Attaches to {{ entry.attached_ref }}</div>
+                }
+              </div>
+              <div class="entry-actions">
+                @if (entry.done) {
+                  <span class="ticked">Ticked off by the executive</span>
+                } @else if (canArrange()) {
+                  <button type="button" class="btn btn-secondary tiny" (click)="openEdit(entry)">Edit</button>
+                  <button type="button" class="btn btn-secondary tiny icon" (click)="move(entry, -1)"
+                          [disabled]="!canMoveUp(entry) || !!movingId()"
+                          title="Swap slots with the entry above" aria-label="Move earlier">↑</button>
+                  <button type="button" class="btn btn-secondary tiny icon" (click)="move(entry, 1)"
+                          [disabled]="!canMoveDown(entry) || !!movingId()"
+                          title="Swap slots with the entry below" aria-label="Move later">↓</button>
+                  <button type="button" class="btn btn-secondary tiny" (click)="askRemove(entry)">Remove</button>
+                }
               </div>
             </div>
-          } @empty {
-            <div class="none">Nothing in the diary today.</div>
+          }
+        } @empty {
+          @if (composing() !== 'new') {
+            <app-empty-state
+              heading="Nothing in the diary for this day"
+              note="Add the first entry and it appears on the executive's own day straight away."
+              [actionLabel]="canArrange() ? 'Add the first entry' : ''"
+              (action)="openAdd()" />
           }
         }
       </div>
+    }
+  </app-section-card>
+</section>
+
+<!-- ── 2. Reports and packs ───────────────────────────────────────────── -->
+<section class="block">
+  <app-section-card heading="Reports and packs"
+                    subheading="Quarterly reports, board packs, meeting packs and minutes — published once, downloaded by their audience.">
+    <div section-actions class="sec-actions">
+      @if (canPublish()) {
+        <button type="button" class="btn btn-primary" (click)="openPublish()"
+                [disabled]="publishOpen()">Publish a report</button>
+      }
     </div>
 
-    <div class="panel">
-      <h4 class="panel-title">Awaiting signature</h4>
-      <div class="panel-sub">Sending logs the request on the contract</div>
-      <div class="stack">
-        @if (signatures().failure; as fail) {
-          <div class="denied">{{ fail.heading }} — {{ fail.note }}</div>
-        } @else {
-          @for (signature of signatures().rows; track signature.id) {
-            <div class="sig">
-              <div class="sig-text">{{ signature.text }}</div>
-              <div class="sig-meta">{{ signature.meta }}</div>
-              <button type="button" [class]="'btn sig-btn ' + signature.button_class"
-                      [disabled]="signature.state !== 'draft' || !!sending()"
-                      (click)="send(signature)">
-                @if (sending() === signature.id) { <span class="spin"></span> }
-                {{ ctaFor(signature) }}
-              </button>
+    @if (publishOpen()) {
+      <div class="composer fade">
+        <div class="composer-head">Publish a report</div>
+        <div class="grid">
+          <div class="span2">
+            <app-field label="Title" name="rtitle" [value]="publish().title" surface="var(--pl-color-ffffff)"
+                       placeholder="Q3 2026 performance report"
+                       (valueChange)="setPublish('title', $event)" />
+          </div>
+          <app-field label="Period" name="rperiod" [value]="publish().period" surface="var(--pl-color-ffffff)"
+                     placeholder="Q3 2026" (valueChange)="setPublish('period', $event)" />
+          <div class="span2">
+            <app-field label="Kind" name="rkind" kind="options" [options]="reportKindLabels"
+                       [value]="publishKindLabel()" (valueChange)="setPublishChoice('kind', $event)" />
+          </div>
+          <div class="span3">
+            <app-field label="Who may download it" name="raud" kind="options"
+                       [options]="reportAudienceLabels" [value]="publishAudienceLabel()"
+                       (valueChange)="setPublishChoice('audience', $event)" />
+          </div>
+          <div class="span3">
+            <app-field label="Summary" name="rsum" kind="area" [value]="publish().summary"
+                       surface="var(--pl-color-ffffff)" placeholder="One line on what this pack says."
+                       (valueChange)="setPublish('summary', $event)" />
+          </div>
+          <div class="span3">
+            <div class="field">
+              <label for="rfile">File</label>
+              <div class="filepick">
+                <label class="btn btn-secondary pickbtn" for="rfile">Choose file</label>
+                <input id="rfile" class="filehidden" type="file" (change)="onFile($event)">
+                <span class="filename" [class.muted-3]="!file()">{{ fileName() }}</span>
+              </div>
             </div>
-          } @empty {
-            <div class="none">Nothing is waiting on a signature.</div>
-          }
+          </div>
+        </div>
+
+        @if (uploading()) {
+          <div class="upload">
+            <span class="track"><span class="fill" [style.width.%]="uploadPct()"></span></span>
+            <span class="upload-note">Uploading {{ fileName() }} — {{ uploadPct() }}%</span>
+          </div>
+        }
+        @if (publishError()) { <div class="err">{{ publishError() }}</div> }
+
+        <div class="composer-foot">
+          <button type="button" class="btn btn-secondary" (click)="closePublish()"
+                  [disabled]="uploading()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="submitPublish()" [disabled]="uploading()">
+            @if (uploading()) { <span class="spin"></span> }
+            {{ uploading() ? 'Publishing…' : 'Publish' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (reportsLoading()) {
+      <div class="stack-skel">
+        @for (i of [1, 2]; track i) { <app-skeleton width="100%" height="62px" /> }
+      </div>
+    } @else if (reportsFailure()) {
+      <app-empty-state [heading]="reportsFailure()!.heading" [note]="reportsFailure()!.note" />
+    } @else {
+      <div class="reports">
+        @for (report of reports(); track report.id) {
+          <div class="report">
+            <div class="report-body">
+              <div class="report-title">
+                {{ report.title }}
+                <app-tag [text]="report.kind_label" tagClass="tag-accent" />
+              </div>
+              <div class="report-meta">{{ reportMeta(report) }}</div>
+              @if (report.summary) { <div class="report-sum">{{ report.summary }}</div> }
+              @if (downloadingId() === report.id) {
+                <div class="upload">
+                  <span class="track"><span class="fill" [style.width.%]="downloadPct() || 8"></span></span>
+                  <span class="upload-note">Downloading — {{ downloadPct() }}%</span>
+                </div>
+              }
+            </div>
+            <div class="report-actions">
+              <button type="button" class="btn btn-secondary tiny" (click)="download(report)"
+                      [disabled]="!!downloadingId()">
+                {{ downloadingId() === report.id ? 'Downloading…' : 'Download' }}
+              </button>
+              @if (canPublish()) {
+                <button type="button" class="btn btn-secondary tiny"
+                        (click)="askWithdraw(report)">Withdraw</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <app-empty-state
+            heading="No reports have been published"
+            note="Quarterly reports and board packs uploaded here are downloadable by the audience you choose."
+            [actionLabel]="canPublish() ? 'Publish the first report' : ''"
+            (action)="openPublish()" />
         }
       </div>
-    </div>
+    }
+  </app-section-card>
+</section>
 
-    <div class="panel">
-      <h4 class="panel-title">Week at a glance</h4>
-      <div class="panel-sub">Office load by day</div>
-      <svg viewBox="0 0 300 170" width="100%" height="170" class="week" aria-hidden="true">
-        <line x1="26" y1="140" x2="290" y2="140" stroke="#d8d8d8" />
-        <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
-          <text x="4" y="30">8</text><text x="4" y="76">5</text><text x="4" y="122">2</text>
-        </g>
-        <g stroke="#f0f0f0">
-          <line x1="26" y1="26" x2="290" y2="26" />
-          <line x1="26" y1="72" x2="290" y2="72" />
-          <line x1="26" y1="118" x2="290" y2="118" />
-        </g>
-        <g>
-          <rect x="42" y="42" width="26" height="98" fill="#111" />
-          <rect x="42" y="42" width="26" height="30" fill="#3d3d3d" />
-          <rect x="94" y="72" width="26" height="68" fill="#111" />
-          <rect x="94" y="72" width="26" height="22" fill="#3d3d3d" />
-          <rect x="146" y="56" width="26" height="84" fill="#111" />
-          <rect x="146" y="56" width="26" height="34" fill="#3d3d3d" />
-          <rect x="198" y="88" width="26" height="52" fill="#111" />
-          <rect x="198" y="88" width="26" height="14" fill="#3d3d3d" />
-          <rect x="250" y="104" width="26" height="36" fill="#111" />
-        </g>
-        <g font-size="9.5" fill="#9a9a9a" font-family="Roboto, sans-serif">
-          <text x="46" y="156">Mon</text><text x="100" y="156">Tue</text>
-          <text x="152" y="156">Wed</text><text x="204" y="156">Thu</text>
-          <text x="258" y="156">Fri</text>
-        </g>
-      </svg>
-      <div class="legend">
-        <span class="key"><span class="swatch" style="background:#111"></span>Meetings</span>
-        <span class="key"><span class="swatch" style="background:#3d3d3d"></span>Signature deadlines</span>
+<!-- ── 3. Awaiting signature and correspondence ───────────────────────── -->
+<div class="lower">
+  <app-section-card heading="Awaiting signature"
+                    subheading="Sending logs the request on the contract">
+    @if (loading()) {
+      <app-skeleton width="100%" height="180px" />
+    } @else if (signatures().failure) {
+      <div class="denied">{{ signatures().failure!.heading }} — {{ signatures().failure!.note }}</div>
+    } @else {
+      <div class="sigs">
+        @for (signature of signatures().rows; track signature.id) {
+          <div class="sig">
+            <div class="sig-text">{{ signature.text }}</div>
+            <div class="sig-meta">{{ signature.meta }}</div>
+            <button type="button" [class]="'btn sig-btn ' + signature.button_class"
+                    [disabled]="signature.state !== 'draft' || !!sending()"
+                    (click)="send(signature)">
+              @if (sending() === signature.id) { <span class="spin"></span> }
+              {{ ctaFor(signature) }}
+            </button>
+          </div>
+        } @empty {
+          <div class="none">Nothing is waiting on a signature.</div>
+        }
       </div>
-    </div>
-  </div>
+    }
+  </app-section-card>
 
-  <div class="panel wide">
-    <h4 class="panel-title">Correspondence and reminders</h4>
-    @if (correspondence().failure; as fail) {
-      <div class="denied">{{ fail.heading }} — {{ fail.note }}</div>
+  <app-section-card heading="Correspondence and reminders"
+                    subheading="Every item is attached to the record it belongs to">
+    @if (loading()) {
+      <app-skeleton width="100%" height="180px" />
+    } @else if (correspondence().failure) {
+      <div class="denied">{{ correspondence().failure!.heading }} — {{ correspondence().failure!.note }}</div>
     } @else {
       <div class="table-wrap">
         <app-data-table
-          [cols]="correspondenceCols" [rows]="correspondenceRows()" [minWidth]="640"
+          [cols]="correspondenceCols" [rows]="correspondenceRows()" [minWidth]="620"
           [clickable]="false" emptyText="No correspondence is open." />
       </div>
     }
-  </div>
-  }
-}
+  </app-section-card>
+</div>
+
+<!-- ── confirmations ──────────────────────────────────────────────────── -->
+<app-confirm
+  [open]="!!removeTarget()"
+  heading="Remove this entry?"
+  body="It disappears from the executive's day as soon as you confirm."
+  [consequence]="removeTarget() ? removeTarget()!.time_label + ' · ' + removeTarget()!.title : ''"
+  confirmLabel="Remove entry"
+  cancelLabel="Keep it"
+  [busy]="removing()"
+  (confirm)="confirmRemove()"
+  (cancel)="removeTarget.set(null)" />
+
+<app-confirm
+  [open]="!!withdrawTarget()"
+  heading="Withdraw this report?"
+  body="The file stops being downloadable by anyone in its audience. Publishing it again means uploading it again."
+  [consequence]="withdrawTarget() ? withdrawTarget()!.title + ' · ' + withdrawTarget()!.audience_label : ''"
+  confirmLabel="Withdraw report"
+  cancelLabel="Leave it published"
+  [busy]="withdrawing()"
+  (confirm)="confirmWithdraw()"
+  (cancel)="withdrawTarget.set(null)" />

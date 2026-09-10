@@ -32,11 +32,19 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     }
   `,
   styles: [`
-    .overlay { position: absolute; left: 0; right: 0; top: 53px; bottom: 0; background: #fff; z-index: 15; padding: 26px 28px; }
+    .overlay { position: absolute; left: 0; right: 0; top: 53px; bottom: 0; background: var(--pl-ground); z-index: 15; padding: 26px 4px; }
     .row3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; margin-top: 26px; }
     .row2 { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: 16px; margin-top: 16px; }
-    .note { display: flex; align-items: center; gap: 9px; margin-top: 22px; font-size: 11.5px; color: #8a8a8a; }
-    .ring { width: 11px; height: 11px; border: 2px solid #e0e0e0; border-top-color: #3d3d3d; border-radius: 50%; animation: pl-spin 0.7s linear infinite; }
+    .note { display: flex; align-items: center; gap: 9px; margin-top: 22px; font-size: 11.5px; color: var(--pl-color-8a8a8a); }
+    .ring { width: 11px; height: 11px; border: 2px solid var(--pl-color-e0e0e0); border-top-color: var(--pl-color-3d3d3d); border-radius: 50%; animation: pl-spin 0.7s linear infinite; }
+    @media (max-width: 900px) {
+      .row3, .row2 { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .overlay { padding: 16px 14px; }
+      .row3, .row2 { gap: 12px; margin-top: 16px; }
+      .overlay .skel { max-width: 100%; }
+    }
   `],
 })
 export class SkeletonComponent {

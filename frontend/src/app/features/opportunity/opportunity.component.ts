@@ -1,3 +1,4 @@
+import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -36,7 +37,7 @@ interface ActionResult { record: OpportunityDetail; toast: string; }
 @Component({
   selector: 'app-opportunity',
   standalone: true,
-  imports: [RouterLink, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, RouterLink, SkeletonComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './opportunity.component.html',
   styleUrl: './opportunity.component.css',
