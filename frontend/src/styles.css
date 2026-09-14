@@ -405,3 +405,12 @@ body{font-family:var(--pl-font);color:#17271f}input,select,textarea{font-family:
 body .brand-wrap img,.login-page header img{filter:invert(1);mix-blend-mode:multiply}body .sidebar .nav-item.active{background:#edf3e7;color:#17271f}body .section-kicker{color:#566258}.workspace-page .eyebrow{font-family:var(--pl-font)}
 
 :root,:root[data-theme="light"]{--pl-color-8a8a8a:#566258;--pl-color-9a9a9a:#566258;--pl-color-999999:#566258;--pl-color-888888:#566258}
+
+/* Circular directional cues shared with the public Prolithica website. */
+.arrow-circle{display:inline-grid;width:30px;height:30px;margin-inline:5px;place-items:center;border-radius:50%;background:#e2e3e4;color:#000;font-size:14px;font-weight:500;line-height:1;vertical-align:middle;flex:0 0 30px}
+
+/* Content enters quietly, then yields as it moves back out of view. */
+[data-scroll-fade]{opacity:0;transform:translateY(14px);transition:opacity 420ms ease,transform 420ms ease}
+[data-scroll-fade].is-in-view{opacity:1;transform:translateY(0)}
+[data-scroll-typewriter]{clip-path:inset(0 calc((1 - var(--type-progress,1))*100%) 0 0);transition:clip-path 80ms linear;will-change:clip-path}
+@media(prefers-reduced-motion:reduce){[data-scroll-fade]{opacity:1;transform:none;transition:none}[data-scroll-typewriter]{clip-path:none;transition:none;will-change:auto}}

@@ -25,7 +25,7 @@ import { MyDayService } from '../my-day.service';
             <div class="g-greeting">{{ data.greeting }}</div>
             <div class="g-sub">{{ data.date_label }} · {{ data.summary }}</div>
           </div>
-          <a class="btn btn-secondary g-open" routerLink="/my-day">Open my day →</a>
+          <a class="btn btn-secondary g-open" routerLink="/my-day">Open my day <span class="arrow-circle" aria-hidden="true">→</span></a>
         </div>
 
         <div class="g-body">

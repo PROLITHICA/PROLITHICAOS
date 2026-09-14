@@ -124,10 +124,10 @@
                   <button type="button" class="btn btn-secondary tiny" (click)="openEdit(entry)">Edit</button>
                   <button type="button" class="btn btn-secondary tiny icon" (click)="move(entry, -1)"
                           [disabled]="!canMoveUp(entry) || !!movingId()"
-                          title="Swap slots with the entry above" aria-label="Move earlier">↑</button>
+                          title="Swap slots with the entry above" aria-label="Move earlier"><span class="arrow-circle" aria-hidden="true">↑</span></button>
                   <button type="button" class="btn btn-secondary tiny icon" (click)="move(entry, 1)"
                           [disabled]="!canMoveDown(entry) || !!movingId()"
-                          title="Swap slots with the entry below" aria-label="Move later">↓</button>
+                          title="Swap slots with the entry below" aria-label="Move later"><span class="arrow-circle" aria-hidden="true">↓</span></button>
                   <button type="button" class="btn btn-secondary tiny" (click)="askRemove(entry)">Remove</button>
                 }
               </div>
