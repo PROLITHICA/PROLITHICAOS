@@ -42,7 +42,7 @@ export interface LineSeries {
         </g>
         <line x1="40" y1="170" x2="610" y2="170" stroke="var(--pl-color-d8d8d8)" />
 
-        <g font-size="10" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
+        <g font-size="10" fill="var(--pl-color-9a9a9a)" font-family="Space Grotesk, sans-serif">
           @for (label of yLabels(); track $index) {
             <text x="8" [attr.y]="gridY()[$index] + 4">{{ label }}</text>
           }
@@ -64,10 +64,10 @@ export interface LineSeries {
 
         @if (nowX() !== null) {
           <line [attr.x1]="nowX()" y1="20" [attr.x2]="nowX()" y2="170" stroke="var(--pl-color-111111)" stroke-width="1" stroke-dasharray="4 3" />
-          <text [attr.x]="(nowX() || 0) + 6" y="34" font-size="10" fill="var(--pl-color-111111)" font-family="Roboto, sans-serif">{{ nowLabel() }}</text>
+          <text [attr.x]="(nowX() || 0) + 6" y="34" font-size="10" fill="var(--pl-color-111111)" font-family="Space Grotesk, sans-serif">{{ nowLabel() }}</text>
         }
 
-        <g font-size="10" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
+        <g font-size="10" fill="var(--pl-color-9a9a9a)" font-family="Space Grotesk, sans-serif">
           @for (label of xLabels(); track $index) {
             <text [attr.x]="50 + $index * xStep()" y="188">{{ label }}</text>
           }

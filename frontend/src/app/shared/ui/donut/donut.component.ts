@@ -22,8 +22,8 @@ export interface DonutSlice { label: string; value: number; display: string; col
                     [attr.stroke-dasharray]="arc.dash" [attr.stroke-dashoffset]="arc.offset" />
           }
         </g>
-        <text x="62" y="59" text-anchor="middle" font-size="18" font-weight="600" fill="var(--pl-color-111111)" font-family="Roboto, sans-serif">{{ total() }}</text>
-        <text x="62" y="75" text-anchor="middle" font-size="9" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">{{ totalNote() }}</text>
+        <text x="62" y="59" text-anchor="middle" font-size="18" font-weight="600" fill="var(--pl-color-111111)" font-family="Space Grotesk, sans-serif">{{ total() }}</text>
+        <text x="62" y="75" text-anchor="middle" font-size="9" fill="var(--pl-color-9a9a9a)" font-family="Space Grotesk, sans-serif">{{ totalNote() }}</text>
       </svg>
       <div class="legend">
         @for (slice of slices(); track slice.label; let last = $last) {

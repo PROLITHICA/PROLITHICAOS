@@ -18,7 +18,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
     </div>
   `,
   styles: [`
-    .empty { border: 0; border-radius: 16px; background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: 46px 26px; text-align: center; }
+    .empty { border: 0; border-radius: var(--pl-radius-card); background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: 46px 26px; text-align: center; }
     .empty-title { font-size: 15px; font-weight: 500; }
     .empty-note { font-size: 12.5px; color: var(--pl-color-8a8a8a); margin-top: 6px; max-width: 56ch; margin-inline: auto; }
     .empty-action { margin-top: 16px; }

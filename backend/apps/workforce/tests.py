@@ -1,0 +1,86 @@
+from django.test import TestCase
+from django.utils import timezone
+from rest_framework.test import APIClient
+from apps.accounts.models import User, Department, Role
+from apps.delivery.models import Project, ProjectMember, Task
+from .models import DailyLog, Thread, Message
+
+class WorkspaceTests(TestCase):
+    def setUp(self):
+        self.client=APIClient()
+        self.department=Department.objects.create(slug='engineering',label='Engineering')
+        self.other_department=Department.objects.create(slug='finance',label='Finance')
+        self.director=Role.objects.create(slug='director',label='CEO',is_director=True)
+        self.employee_role=Role.objects.create(slug='employee',label='Employee',scope='assigned_projects')
+        self.ceo=User.objects.create_user('ceo@example.com','Company-pass-123',display_name='CEO',role=self.director)
+        self.hod=User.objects.create_user('hod@example.com','Company-pass-123',display_name='Head',department=self.department,is_department_head=True,role=self.employee_role)
+        self.employee=User.objects.create_user('one@example.com','Company-pass-123',display_name='One',department=self.department,role=self.employee_role)
+        self.other=User.objects.create_user('other@example.com','Company-pass-123',display_name='Other',department=self.other_department,role=self.employee_role)
+        self.project=Project.objects.create(name='Test Project')
+        ProjectMember.objects.create(project=self.project,user=self.hod)
+    def login_as(self,user): self.client.force_authenticate(user)
+    def test_real_account_number_password_and_suspension(self):
+        self.login_as(self.ceo)
+        payload={'display_name':'New employee','email':'new@example.com','password':'Fresh-company-pass-293','department':str(self.department.pk),'role':str(self.employee_role.pk)}
+        response=self.client.post('/api/users/',payload); self.assertEqual(response.status_code,201,response.data)
+        user=User.objects.get(email='new@example.com'); self.assertEqual(user.employee_number,'EN-P005');self.assertTrue(user.check_password(payload['password']))
+        self.assertNotIn('password',response.data)
+        self.client.force_authenticate(None)
+        response=self.client.post('/api/auth/login/',{'email':user.email,'password':payload['password']});self.assertEqual(response.status_code,200)
+        token=response.data['access']
+        self.login_as(self.ceo);self.client.patch(f'/api/users/{user.pk}/',{'state':'suspended'})
+        self.client.force_authenticate(None);self.client.credentials(HTTP_AUTHORIZATION='Bearer '+token)
+        self.assertEqual(self.client.get('/api/workspace/').status_code,401)
+        self.client.credentials();self.assertEqual(self.client.post('/api/auth/login/',{'email':user.email,'password':payload['password']}).status_code,403)
+    def test_employee_cannot_manage_users(self):
+        self.login_as(self.employee);self.assertEqual(self.client.get('/api/users/').status_code,403)
+    def test_hod_department_assignment_and_profile(self):
+        self.login_as(self.hod)
+        payload={'text':'Build a form','project':str(self.project.pk),'assignee':str(self.employee.pk)}
+        response=self.client.post('/api/workspace/',payload);self.assertEqual(response.status_code,201,response.data)
+        payload['assignee']=str(self.other.pk);self.assertEqual(self.client.post('/api/workspace/',payload).status_code,404)
+        self.login_as(self.employee)
+        self.assertEqual(len(self.client.get('/api/profile/').data['projects']),1)
+        self.assertEqual(self.client.post('/api/workspace/',payload).status_code,403)
+    def test_daily_logs_owned_and_scoped(self):
+        ProjectMember.objects.create(project=self.project,user=self.employee)
+        self.login_as(self.employee)
+        payload={'project':str(self.project.pk),'date':str(timezone.localdate()),'minutes':90,'summary':'Implemented form','user':str(self.other.pk)}
+        self.assertEqual(self.client.post('/api/workspace/logs/',payload).status_code,201)
+        self.assertEqual(DailyLog.objects.get().user,self.employee)
+        payload['minutes']=1500;self.assertEqual(self.client.post('/api/workspace/logs/',payload).status_code,400)
+        self.login_as(self.other);self.assertEqual(self.client.get('/api/workspace/').data['logs'],[])
+        self.assertEqual(self.client.post('/api/workspace/logs/',payload).status_code,400)
+    def test_group_admin_and_private_direct_messages(self):
+        self.login_as(self.employee)
+        response=self.client.post('/api/workspace/threads/',{'name':'Engineering','members':[str(self.hod.pk)],'direct':False},format='json')
+        self.assertEqual(response.status_code,201,response.data);group=Thread.objects.get(pk=response.data['id']);self.assertIn(self.ceo,group.members.all())
+        response=self.client.post('/api/workspace/threads/',{'members':[str(self.hod.pk)],'direct':True},format='json')
+        direct=response.data['id'];self.client.post(f'/api/workspace/threads/{direct}/messages/',{'body':'Private note'})
+        self.assertEqual(Message.objects.get().body,'Private note')
+        self.login_as(self.ceo);self.assertEqual(self.client.get(f'/api/workspace/threads/{direct}/messages/').status_code,404)
+        self.assertEqual(self.client.get(f'/api/workspace/threads/{group.pk}/messages/').status_code,200)
+        self.login_as(self.other);self.assertEqual(self.client.get(f'/api/workspace/threads/{group.pk}/messages/').status_code,404)
+        self.login_as(self.hod)
+        again=self.client.post('/api/workspace/threads/',{'members':[str(self.employee.pk)],'direct':True},format='json')
+        self.assertEqual(str(again.data['id']),str(direct))
+    def test_task_completion_cannot_cross_departments(self):
+        task=Task.objects.create(project=self.project,assignee=self.employee,text='Scoped task')
+        self.login_as(self.other)
+        self.assertEqual(self.client.patch(f'/api/workspace/tasks/{task.pk}/',{'done':True},format='json').status_code,404)
+        self.login_as(self.employee)
+        self.assertEqual(self.client.patch(f'/api/workspace/tasks/{task.pk}/',{'done':True},format='json').status_code,200)
+    def test_ceo_cannot_remove_own_access(self):
+        self.login_as(self.ceo)
+        self.assertEqual(self.client.patch(f'/api/users/{self.ceo.pk}/',{'state':'suspended'}).status_code,400)
+        self.assertEqual(self.client.post(f'/api/users/{self.ceo.pk}/grant/',{'role':'employee'}).status_code,400)
+
+    def test_only_ceo_can_manage_group_members(self):
+        self.login_as(self.employee)
+        response=self.client.post('/api/workspace/threads/',{'name':'Team','members':[str(self.hod.pk)]},format='json')
+        path=f"/api/workspace/threads/{response.data['id']}/messages/"
+        self.assertEqual(self.client.patch(path,{'members':[str(self.other.pk)]},format='json').status_code,403)
+        self.login_as(self.ceo)
+        self.assertEqual(self.client.patch(path,{'name':'Updated team','members':[str(self.other.pk)]},format='json').status_code,200)
+        self.login_as(self.employee);self.assertEqual(self.client.get(path).status_code,404)
+        self.login_as(self.other);self.assertEqual(self.client.get(path).status_code,200)

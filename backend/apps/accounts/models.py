@@ -101,6 +101,11 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra)
 
 
+class EmployeeSequence(models.Model):
+    """Monotonic allocation; retired employee numbers are never reused."""
+    id = models.AutoField(primary_key=True)
+
+
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     STATE = [
         ("active", "Active"),
@@ -109,6 +114,8 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         ("over_capacity", "Over capacity"),
         ("suspended", "Suspended"),
     ]
+    employee_number = models.CharField(max_length=24, unique=True, null=True, editable=False)
+    is_department_head = models.BooleanField(default=False)
     email = models.EmailField(unique=True)
     display_name = models.CharField(max_length=80)
     job_title = models.CharField(max_length=80, blank=True)
@@ -134,6 +141,13 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     class Meta:
         ordering = ["display_name"]
 
+    def save(self, *args, **kwargs):
+        from django.db import transaction
+        with transaction.atomic():
+            if not self.employee_number:
+                self.employee_number = f"EN-P{EmployeeSequence.objects.create().pk:03d}"
+            super().save(*args, **kwargs)
+
     def __str__(self):
         return self.display_name or self.email
 
@@ -157,6 +171,8 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     def level_for(self, area):
         if self.is_superuser or (self.role and self.role.is_director):
             return "administer"
+        if area == "user_admin":
+            return "none"
         return self.role.level_for(area) if self.role else "none"
 
     def permission_map(self):

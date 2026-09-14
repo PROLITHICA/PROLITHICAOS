@@ -24,7 +24,7 @@
 }
 .figure-label { font-size: 11.5px; color: var(--pl-color-6b6b6b); }
 .figure-value {
-  font-family: 'Roboto', sans-serif; font-size: clamp(19px, 1.9vw, 26px);
+  font-family: var(--pl-font); font-size: clamp(19px, 1.9vw, 26px);
   font-weight: 600; margin-top: 6px; white-space: nowrap;
 }
 .figure-note { font-size: 11px; color: var(--pl-color-9a9a9a); margin-top: 4px; }

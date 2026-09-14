@@ -57,7 +57,7 @@ interface Delegation {
 interface DirectoryPerson { id: string; display_name: string; job_title?: string; email: string; }
 
 /** `/api/profile/` returns the MeSerializer payload; the timestamp is optional. */
-interface ProfileUser extends User { password_changed_at?: string | null; }
+interface ProfileUser extends User { password_changed_at?: string | null; employee_number?: string; projects?: {id:string;ref:string;name:string;stage:string;completion:number}[]; }
 
 /**
  * My profile — design lines 1530-1649. Six tabs behind one page: account,

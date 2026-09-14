@@ -15,6 +15,7 @@ router.register("directory", account_views.UserDirectoryViewSet, basename="direc
 router.register("audit", account_views.AuditViewSet, basename="audit")
 
 urlpatterns = [
+    path("workspace/", include("apps.workforce.urls")),
     path("auth/", include("apps.accounts.urls")),
     path("profile/", account_views.ProfileView.as_view(), name="profile"),
     path("", include("apps.core.urls")),

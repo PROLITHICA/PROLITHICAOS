@@ -401,6 +401,22 @@ class TaskViewSet(DeliveryViewSet):
     write_level = "contribute"
     search_fields = ["ref", "text", "meta", "project_label"]
 
+    def get_queryset(self):
+        from apps.workforce.views import task_scope
+        return task_scope(self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied("Assign work through My work, where department and project access are checked.")
+
+    def update(self, request, *args, **kwargs):
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied("Update task completion through My work.")
+
+    def destroy(self, request, *args, **kwargs):
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied("Retain assigned work for its history; mark it complete instead.")
+
     @action(detail=True, methods=["post"])
     def toggle(self, request, pk=None):
         task = self.get_object()

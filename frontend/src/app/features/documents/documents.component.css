@@ -84,7 +84,7 @@
 }
 .foot-kicker { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pl-color-9a9a9a); }
 .foot-value {
-  font-family: 'Roboto', sans-serif; font-size: 22px; font-weight: 600;
+  font-family: var(--pl-font); font-size: 22px; font-weight: 600;
   margin-top: 5px; white-space: nowrap;
 }
 .bar {

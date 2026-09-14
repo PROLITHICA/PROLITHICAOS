@@ -150,7 +150,7 @@
             }
           </g>
           <line x1="34" [attr.y1]="chart.baseline_y" x2="510" [attr.y2]="chart.baseline_y" stroke="var(--pl-color-d8d8d8)" />
-          <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
+          <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Space Grotesk, sans-serif">
             @for (line of chart.axis; track line.y) {
               <text x="6" [attr.y]="line.y + 4">{{ line.label }}</text>
             }
@@ -165,7 +165,7 @@
                     [attr.height]="bar.height" [attr.fill]="(bar.fill || 'var(--pl-color-d6d6d6)') | themeColor" />
             }
           </g>
-          <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Roboto, sans-serif">
+          <g font-size="9.5" fill="var(--pl-color-9a9a9a)" font-family="Space Grotesk, sans-serif">
             @for (month of months(); track month.label) {
               <text [attr.x]="month.x" y="176">{{ month.label }}</text>
             }

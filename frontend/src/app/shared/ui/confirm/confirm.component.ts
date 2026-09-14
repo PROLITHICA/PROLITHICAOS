@@ -34,10 +34,10 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
   `,
   styles: [`
     .backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(17,17,17,0.35); display: grid; place-items: center; padding: 28px; }
-    .sheet { width: min(430px, 100%); background: var(--pl-color-ffffff); border: 1px dotted var(--pl-color-b5b5b5); border-radius: 22px; padding: 24px 24px 20px; }
+    .sheet { width: min(430px, 100%); background: var(--pl-color-ffffff); border: 1px solid var(--pl-color-b5b5b5); border-radius: var(--pl-radius-card); padding: 24px 24px 20px; }
     .sheet-title { margin: 0 0 6px; font-size: 18px; }
     .sheet-body { font-size: 12.5px; color: var(--pl-color-6b6b6b); line-height: 1.5; }
-    .conseq { margin-top: 12px; border: 1px dotted var(--pl-color-dcdcdc); border-radius: 14px; background: var(--pl-color-fafafa); padding: 10px 13px; font-size: 12px; color: var(--pl-color-333333); }
+    .conseq { margin-top: 12px; border: 1px solid var(--pl-color-dcdcdc); border-radius: 14px; background: var(--pl-color-fafafa); padding: 10px 13px; font-size: 12px; color: var(--pl-color-333333); }
     .foot { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
     @media (max-width: 560px) {
       .backdrop { padding: 16px; }

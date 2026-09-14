@@ -133,7 +133,7 @@ def _delivery_focus(user):
                 "tag_class": project.tag_class,
                 "route": f"/projects/{project.ref}",
             }
-            for project in projects[:6]
+            for project in projects[:50]
         ],
     }
 

@@ -21,7 +21,7 @@
 }
 
 .figure-value {
-  font-family: 'Roboto', sans-serif;
+  font-family: var(--pl-font);
   font-size: clamp(19px, 1.8vw, 25px);
   font-weight: 600;
   margin-top: 6px;
