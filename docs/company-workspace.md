@@ -34,7 +34,7 @@ The temporary runtime can be recreated using the standard setup above. The app r
 
 ## Project catalogue
 
-`manage.py setup_workspace` idempotently ensures all eight requested project names, reusing known starter project references and preserving linked records and later company edits. Startup runs this command automatically. **Existing seeded financial amounts, task descriptions and progress remain demonstration data, not verified facts about these projects.** Newly added projects begin at Discovery with no invented delivery history. Do not run the demo seed against company-managed accounts.
+`manage.py setup_workspace` idempotently ensures all eight requested project names, retaining PRJ-041, PRJ-018 and PRJ-038 for established links, and assigning stable references to the other five. Legacy PRJ-030 “AN-PBO Data Portal” is preserved with its financial and delivery records, then archived so those records remain attributed to AN-PBO rather than Bunema. New Bunema work starts at PRJ-046. Later company project edits are preserved. Startup runs this command automatically. **Existing seeded financial amounts, task descriptions and progress remain demonstration data, not verified facts about these projects.** Newly added projects begin at Discovery with no invented delivery history. Do not run the demo seed against company-managed accounts.
 
 A fresh database bootstraps through `dev.sh`, which prompts for the initial CEO email and a validated password without putting the password in shell history or arguments. The prompt is skipped once a CEO or superuser exists.
 

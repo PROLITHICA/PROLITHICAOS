@@ -31,7 +31,7 @@ def ceo(user):
 
 
 def projects(user):
-    qs = Project.objects.exclude(state="closed")
+    qs = Project.objects.exclude(is_archived=True).exclude(state="closed")
     if ceo(user): return qs
     criterion = Q(members__user=user) | Q(manager=user) | Q(tasks__assignee=user)
     if user.is_department_head and user.department_id:

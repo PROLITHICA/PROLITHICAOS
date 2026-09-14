@@ -103,12 +103,31 @@ class WorkspaceTests(TestCase):
             'Bunema billing system','PBO Workflow','Expresscarpets','Kienyeji Hub',
             'Goalhub','Partec internal system','LIMS (legislative information system)',
             'Directorate of Committees system']).count(),8)
+        self.assertEqual(Project.objects.get(name='Bunema billing system').ref,'PRJ-046')
+        self.assertEqual(Project.objects.get(name='Expresscarpets').ref,'PRJ-042')
         historical.name='Approved project title'
         historical.stage='Delivery'
         historical.save()
         call_command('setup_workspace',verbosity=0)
         historical.refresh_from_db()
         self.assertEqual((historical.name,historical.stage),('Approved project title','Delivery'))
+
+    def test_bunema_has_its_own_stable_ref_and_legacy_portal_is_archived(self):
+        from django.core.management import call_command
+        history=Project.objects.create(ref="PRJ-030",name="AN-PBO Data Portal",contract_value=12345,is_archived=True)
+        old_task=Task.objects.create(project=history,assignee=self.employee,text="Existing portal task")
+        call_command("setup_workspace",verbosity=0)
+        history.refresh_from_db()
+        bunema=Project.objects.get(ref="PRJ-046")
+        self.assertEqual((bunema.name,bunema.contract_value),("Bunema billing system",0))
+        self.assertTrue(history.is_archived)
+        self.assertEqual((history.name,history.contract_value),("AN-PBO Data Portal",12345))
+        self.assertEqual(Task.objects.get(pk=old_task.pk).project_id,history.pk)
+        self.login_as(self.ceo)
+        response=self.client.get("/api/workspace/")
+        self.assertNotIn("AN-PBO Data Portal",[row["name"] for row in response.data["projects"]])
+        self.assertEqual(self.client.get(f"/api/projects/{history.pk}/").status_code,404)
+        self.assertEqual(self.client.get(f"/api/projects/{bunema.pk}/").status_code,200)
 
     def test_fresh_install_bootstraps_one_secure_ceo_interactively(self):
         from django.core.management import call_command

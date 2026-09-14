@@ -117,7 +117,7 @@ def _delivery_focus(user):
     from apps.delivery.models import Project
 
     projects = scope_queryset(
-        Project.objects.exclude(state="closed").select_related("organisation"),
+        Project.objects.exclude(is_archived=True).exclude(state="closed").select_related("organisation"),
         user, "id",
     )
     return {

@@ -74,7 +74,7 @@ class MeSerializer(UserSerializer):
     def get_projects(self, obj):
         from apps.delivery.models import Project
         from django.db.models import Q
-        return list(Project.objects.filter(Q(members__user=obj) | Q(manager=obj) | Q(tasks__assignee=obj)).exclude(state="closed").distinct().values("id", "ref", "name", "stage", "completion"))
+        return list(Project.objects.filter(Q(members__user=obj) | Q(manager=obj) | Q(tasks__assignee=obj)).exclude(is_archived=True).exclude(state="closed").distinct().values("id", "ref", "name", "stage", "completion"))
 
     def get_permissions(self, obj):
         return obj.permission_map()
