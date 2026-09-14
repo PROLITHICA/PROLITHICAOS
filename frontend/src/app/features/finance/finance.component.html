@@ -43,7 +43,7 @@
                   {{ stage.count }} {{ stage.count === 1 ? 'item' : 'items' }}
                 </div>
                 <div class="stage-note">{{ stage.note }}</div>
-                @if (!last) { <span class="stage-arrow" aria-hidden="true">→</span> }
+                @if (!last) { <span class="stage-arrow" aria-hidden="true"><span class="arrow-circle" aria-hidden="true">→</span></span> }
               </li>
             }
           </ol>

@@ -120,8 +120,8 @@
           <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">Changing the stage writes to the project timeline, the milestone plan and the client report</div>
         </div>
         <div style="display:flex;gap:9px">
-          <button type="button" class="btn btn-secondary" (click)="stageBack()" [disabled]="stageBusy()" style="border-color:var(--pl-color-b5b5b5);font-size:12.5px;padding:6px 12px">← Move back</button>
-          <button type="button" class="btn btn-primary" (click)="stageNext()" [disabled]="stageBusy()" style="font-size:12.5px;padding:6px 12px">Advance stage →</button>
+          <button type="button" class="btn btn-secondary" (click)="stageBack()" [disabled]="stageBusy()" style="border-color:var(--pl-color-b5b5b5);font-size:12.5px;padding:6px 12px"><span class="arrow-circle" aria-hidden="true">←</span> Move back</button>
+          <button type="button" class="btn btn-primary" (click)="stageNext()" [disabled]="stageBusy()" style="font-size:12.5px;padding:6px 12px">Advance stage <span class="arrow-circle" aria-hidden="true">→</span></button>
         </div>
       </div>
       </div>
