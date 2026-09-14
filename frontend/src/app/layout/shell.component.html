@@ -6,10 +6,11 @@
   <aside class="sidebar" [attr.aria-hidden]="null">
     <button type="button" class="nav-close" aria-label="Close navigation" (click)="closeNav()">&#215;</button>
     <div class="brand-wrap">
-      <div class="brand wordmark">Prolithica</div>
+      <a href="https://www.prolithica.com" aria-label="Prolithica website"><img src="assets/brand/prolithica-wordmark.png" alt="PROLITHICA" style="width:185px;max-width:100%;height:auto"></a>
     </div>
 
     <div class="nav-groups">
+      <div><div class="section-kicker">Together at Prolithica</div><a class="nav-item" routerLink="/work" routerLinkActive="active" (click)="closeNav()">My work & daily logs</a><a class="nav-item" routerLink="/chat" routerLinkActive="active" (click)="closeNav()">Company chat</a></div>
       @for (group of navGroups(); track group.heading) {
         <div>
           <div class="section-kicker">{{ group.heading }}</div>
@@ -44,7 +45,6 @@
     }
 
     <div class="signed-in-wrap">
-      <button type="button" class="btn btn-secondary theme-toggle" (click)="theme.toggle()" [attr.aria-pressed]="theme.dark()" aria-label="Dark mode">{{ theme.dark() ? 'Light mode' : 'Dark mode' }}</button>
       <div class="signed-in">
         <div class="section-kicker plain">Signed in</div>
         <div class="signed-name">{{ person() }}</div>

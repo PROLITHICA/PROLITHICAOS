@@ -9,7 +9,7 @@ export class ThemeService {
   constructor() {
     let preference = 'light';
     try { preference = localStorage.getItem('pl.theme') ?? 'light'; } catch { /* Storage can be disabled. */ }
-    this.apply(preference === 'dark');
+    this.apply(false);
   }
 
   toggle(): void {

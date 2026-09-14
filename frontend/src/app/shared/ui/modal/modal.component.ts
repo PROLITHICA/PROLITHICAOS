@@ -53,11 +53,11 @@ import { FieldComponent, FieldKind, FieldSpec } from '../field/field.component';
   `,
   styles: [`
     .backdrop { position: fixed; inset: 0; z-index: 45; background: rgba(17,17,17,0.28); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 28px; }
-    .sheet { width: min(560px, 100%); max-height: 86vh; overflow: auto; background: var(--pl-pane); border: 0; border-radius: 22px; box-shadow: var(--pl-lift-3); padding: 26px 26px 22px; }
+    .sheet { width: min(560px, 100%); max-height: 86vh; overflow: auto; background: var(--pl-pane); border: 0; border-radius: var(--pl-radius-card); box-shadow: var(--pl-lift-3); padding: 26px 26px 22px; }
     .sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
     .sheet-title { margin: 0 0 4px; font-size: 21px; }
     .sheet-sub { font-size: 12px; color: var(--pl-color-8a8a8a); max-width: 52ch; }
-    .x { background: transparent; border: 1px dotted var(--pl-color-b5b5b5); border-radius: 999px; width: 28px; height: 28px; font: inherit; font-size: 13px; color: var(--pl-color-6b6b6b); cursor: pointer; flex: none; }
+    .x { background: transparent; border: 1px solid var(--pl-color-b5b5b5); border-radius: 999px; width: 28px; height: 28px; font: inherit; font-size: 13px; color: var(--pl-color-6b6b6b); cursor: pointer; flex: none; }
     .x:hover { border-color: var(--pl-color-111111); color: var(--pl-color-111111); }
     .inherit { border: 0; border-radius: 14px; padding: 14px 16px; margin-top: 16px; background: var(--pl-pane-sunken); }
     .inherit-kicker { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pl-color-9a9a9a); }
@@ -86,7 +86,7 @@ import { FieldComponent, FieldKind, FieldSpec } from '../field/field.component';
       .fields { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
       .foot {
         flex: none; flex-direction: column-reverse; gap: 8px; margin-top: 14px;
-        border-top: 1px dotted var(--pl-color-dcdcdc);
+        border-top: 1px solid var(--pl-color-dcdcdc);
         padding: 14px 0 calc(14px + env(safe-area-inset-bottom));
         background: var(--pl-color-ffffff);
       }

@@ -56,12 +56,12 @@
                         [attr.height]="col.ghostHeight" fill="var(--pl-color-f7f7f7)" stroke="var(--pl-color-eeeeee)" />
                 }
               }
-              <g font-size="9.5" fill="var(--pl-color-6b6b6b)" font-family="Roboto, sans-serif">
+              <g font-size="9.5" fill="var(--pl-color-6b6b6b)" font-family="Space Grotesk, sans-serif">
                 @for (col of columns(); track $index) {
                   <text [attr.x]="col.labelX" y="166">{{ col.label }}</text>
                 }
               </g>
-              <g font-size="10" font-weight="600" font-family="Roboto, sans-serif" fill="var(--pl-color-111111)">
+              <g font-size="10" font-weight="600" font-family="Space Grotesk, sans-serif" fill="var(--pl-color-111111)">
                 @for (col of columns(); track $index) {
                   @if (col.value) { <text [attr.x]="col.valueX" [attr.y]="col.valueY">{{ col.value }}</text> }
                 }

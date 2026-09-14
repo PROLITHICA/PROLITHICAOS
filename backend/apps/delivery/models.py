@@ -34,6 +34,7 @@ class Project(RefModel):
         ("support", "In support"),
     ]
 
+    is_archived = models.BooleanField(default=False, db_index=True)
     name = models.CharField(max_length=120)
     full_name = models.CharField(max_length=200, blank=True)
     short_label = models.CharField(max_length=60, blank=True, help_text="Milestone register label")

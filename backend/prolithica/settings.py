@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django_filters",
     "apps.core",
     "apps.accounts",
+    "apps.workforce",
     "apps.crm",
     "apps.delivery",
     "apps.finance",
@@ -122,6 +123,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
+    "CHECK_REVOKE_TOKEN": True,
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,

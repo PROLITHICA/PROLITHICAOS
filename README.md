@@ -7,6 +7,8 @@ the part of it they are responsible for.
 Built from the reference design in `_design/Prolithica OS v2.dc.html`.
 The build contract lives in [SPEC.md](SPEC.md).
 
+See [Company workspace](docs/company-workspace.md) for CEO account management, department assignments, daily logs, chat and the local setup changes. Startup preserves existing accounts and passwords; it does not rerun demo seeding.
+
 ## Stack
 
 | | |
@@ -22,8 +24,8 @@ Both halves, from the repository root:
 ./dev.sh
 ```
 
-It migrates, seeds, starts the API on :8000 and serves the app on :4200 — bound to
-all interfaces, so it is reachable from any device on the same network. The script
+It applies migrations, ensures the eight-project catalogue is present, and on a fresh database
+securely prompts for a CEO email and password before serving the API on :8000 and the app on :4200. The script
 prints both addresses when it starts:
 
 ```
@@ -39,7 +41,8 @@ Or run the halves separately:
 ```bash
 # API
 backend_venv/bin/python backend/manage.py migrate
-backend_venv/bin/python backend/manage.py seed
+backend_venv/bin/python backend/manage.py setup_workspace
+backend_venv/bin/python backend/manage.py bootstrap_ceo
 backend_venv/bin/python backend/manage.py runserver 0.0.0.0:8000
 
 # App  (node lives in /opt/homebrew/bin on this machine)

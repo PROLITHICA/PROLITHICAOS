@@ -70,7 +70,7 @@ class DeliveryTestCase(TestCase):
             acceptance_tag_class="tag-outline", billing="Blocked", tag_class="tag-accent-2",
         )
         self.task = Task.objects.create(
-            ref="TASK-166", project=self.lims,
+            ref="TASK-166", project=self.lims, assignee=self.edwin,
             text="Legacy document migration · batch 4 of 9",
             meta="REQ-014 · due today · 240k records total", project_label="LIMS",
         )

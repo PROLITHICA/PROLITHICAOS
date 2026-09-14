@@ -51,7 +51,7 @@ def visible_project_ids(user):
 
     if user.scope == "company":
         return list(Project.objects.values_list("id", flat=True))
-    if user.scope == "assigned_projects":
+    if user.scope in ("assigned_projects", "own_records"):
         return list(
             ProjectMember.objects.filter(user=user).values_list("project_id", flat=True)
         )

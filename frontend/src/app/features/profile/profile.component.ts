@@ -1,6 +1,7 @@
 import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
+import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
@@ -57,7 +58,7 @@ interface Delegation {
 interface DirectoryPerson { id: string; display_name: string; job_title?: string; email: string; }
 
 /** `/api/profile/` returns the MeSerializer payload; the timestamp is optional. */
-interface ProfileUser extends User { password_changed_at?: string | null; }
+interface ProfileUser extends User { password_changed_at?: string | null; employee_number?: string; projects?: {id:string;ref:string;name:string;stage:string;completion:number}[]; }
 
 /**
  * My profile — design lines 1530-1649. Six tabs behind one page: account,
@@ -67,7 +68,7 @@ interface ProfileUser extends User { password_changed_at?: string | null; }
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ThemeColorPipe, FieldComponent, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, FieldComponent, SkeletonComponent, EmptyStateComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',
   styles: [`

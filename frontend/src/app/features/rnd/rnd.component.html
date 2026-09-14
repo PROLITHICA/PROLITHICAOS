@@ -47,7 +47,7 @@
             <h4 style="margin:0 0 2px;font-size:15px">{{ f.title }}</h4>
             <div style="font-size:11.5px;color:var(--pl-color-8a8a8a)">{{ f.subtitle }}</div>
             <svg viewBox="0 0 340 170" width="100%" height="170" style="margin-top:12px" aria-hidden="true">
-              <g font-family="Roboto, sans-serif">
+              <g font-family="Space Grotesk, sans-serif">
                 @for (bar of funnelRows(); track $index) {
                   <rect x="10" [attr.y]="bar.y" [attr.width]="bar.width" height="24" [attr.fill]="(bar.fill) | themeColor" />
                   <text x="18" [attr.y]="bar.textY" font-size="11" [attr.fill]="(bar.text_col) | themeColor">{{ bar.label }}</text>

@@ -9,7 +9,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 export PATH=/opt/homebrew/bin:$PATH
 
-PY=backend_venv/bin/python
+PY=${PROLITHICA_PYTHON:-backend_venv/bin/python}
 PORT_API=${PORT_API:-8000}
 PORT_APP=${PORT_APP:-4200}
 
@@ -20,7 +20,8 @@ LAN_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/nul
 export PROLITHICA_TRUSTED_ORIGINS="http://${LAN_IP}:${PORT_APP},http://localhost:${PORT_APP}"
 
 "$PY" backend/manage.py migrate --noinput
-"$PY" backend/manage.py seed
+"$PY" backend/manage.py setup_workspace
+"$PY" backend/manage.py bootstrap_ceo
 
 "$PY" backend/manage.py runserver "0.0.0.0:${PORT_API}" &
 API=$!
@@ -36,7 +37,7 @@ cat <<BANNER
     On this machine   http://localhost:${PORT_APP}
     On this network   http://${LAN_IP}:${PORT_APP}
 
-  Sign in as the director: newtvnbrian@gmail.com / 12428newton
+  Sign in with your existing company account.
   Anyone on the same Wi-Fi can reach the second address.
 
 BANNER

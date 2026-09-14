@@ -3,6 +3,7 @@ returns the updated record and the toast copy the design shows."""
 from apps.accounts.permissions import HasDepartmentAccess
 
 from django.utils import timezone
+from django.core.exceptions import FieldDoesNotExist
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -61,7 +62,14 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     _write_serializer = None
 
     def get_queryset(self):
-        return scope_queryset(self.queryset, self.request.user, self.scope_field)
+        queryset = scope_queryset(self.queryset, self.request.user, self.scope_field)
+        if self.queryset.model is Project:
+            return queryset.filter(is_archived=False)
+        try:
+            self.queryset.model._meta.get_field("project")
+        except FieldDoesNotExist:
+            return queryset
+        return queryset.filter(project__is_archived=False)
 
     def get_serializer_class(self):
         """Read serializers are shaped for the design's tables; writes need the model."""
@@ -400,6 +408,22 @@ class TaskViewSet(DeliveryViewSet):
     permission_areas = ["assigned_projects", "delivery"]
     write_level = "contribute"
     search_fields = ["ref", "text", "meta", "project_label"]
+
+    def get_queryset(self):
+        from apps.workforce.views import task_scope
+        return task_scope(self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied("Assign work through My work, where department and project access are checked.")
+
+    def update(self, request, *args, **kwargs):
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied("Update task completion through My work.")
+
+    def destroy(self, request, *args, **kwargs):
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied("Retain assigned work for its history; mark it complete instead.")
 
     @action(detail=True, methods=["post"])
     def toggle(self, request, pk=None):

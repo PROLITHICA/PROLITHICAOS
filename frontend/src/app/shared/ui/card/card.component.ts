@@ -20,7 +20,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     </div>
   `,
   styles: [`
-    .pl-card { border: 0; border-radius: 16px; background: var(--pl-pane); box-shadow: var(--pl-lift-1); }
+    .pl-card { border: 0; border-radius: var(--pl-radius-card); background: var(--pl-pane); box-shadow: var(--pl-lift-1); }
     .pl-card-head { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; align-items: baseline; }
     .pl-card-title { margin: 0 0 2px; font-size: 15px; }
     .pl-card-sub { font-size: 11.5px; color: var(--pl-color-8a8a8a); }

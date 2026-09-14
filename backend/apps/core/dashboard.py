@@ -87,7 +87,7 @@ def _active_delivery(user):
     queryset = scope_queryset(
         # "Active delivery" means everything still being delivered, which includes a
         # project in closing — the design lists PBO System there at 88% complete.
-        Project.objects.exclude(state="closed").select_related("organisation", "manager"),
+        Project.objects.exclude(is_archived=True).exclude(state="closed").select_related("organisation", "manager"),
         user,
         project_field="id",
     )

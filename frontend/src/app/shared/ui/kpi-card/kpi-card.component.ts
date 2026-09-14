@@ -28,11 +28,11 @@ import { TagComponent } from '../tag/tag.component';
     </div>
   `,
   styles: [`
-    .kpi { border: 0; border-radius: 16px; background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: 18px; }
+    .kpi { border: 0; border-radius: var(--pl-radius-card); background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: 18px; }
     .kpi-top { display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; align-items: baseline; }
     .kpi-label { font-size: 11.5px; color: var(--pl-color-6b6b6b); }
     .kpi-meta { font-size: 11px; }
-    .kpi-value { font-family: 'Roboto', sans-serif; font-size: clamp(21px, 2.1vw, 29px); font-weight: 600; margin-top: 8px; white-space: nowrap; }
+    .kpi-value { font-family: var(--pl-font); font-size: clamp(21px, 2.1vw, 29px); font-weight: 600; margin-top: 8px; white-space: nowrap; }
     .kpi-chart { margin-top: 8px; }
     .kpi-note { font-size: 11px; color: var(--pl-color-8a8a8a); }
     @media (max-width: 560px) {

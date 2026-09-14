@@ -19,7 +19,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     </section>
   `,
   styles: [`
-    .sec { border: 0; border-radius: 16px; background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: var(--pl-pane-pad); }
+    .sec { border: 1px solid #d5ddd2; border-radius: var(--pl-radius-card); background: var(--pl-pane); box-shadow: var(--pl-lift-1); padding: var(--pl-pane-pad); }
     .sec-head { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; align-items: baseline; }
     .sec-title { margin: 0 0 2px; font-size: 15px; }
     .sec-sub { font-size: 11.5px; color: var(--pl-color-8a8a8a); }

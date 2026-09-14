@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from apps.core.audit import record
 
 from .models import AuditEvent, Delegation, Department, NotificationPreference, Person, Role, User
-from .permissions import HasAreaPermission
+from .permissions import HasAreaPermission, IsDirector
 from .serializers import (
     AccountAdminSerializer, AuditEventSerializer, DelegationSerializer, DepartmentSerializer,
     LoginSerializer, MeSerializer, NotificationPreferenceSerializer, PasswordChangeSerializer,
@@ -36,7 +36,7 @@ class LoginView(APIView):
                 {"detail": "That email and password do not match an account."},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        if not user.is_active:
+        if not user.is_active or user.state == "suspended":
             return Response({"detail": "This account is not active."}, status=403)
         user.last_sign_in = timezone.now()
         user.save(update_fields=["last_sign_in"])
@@ -103,9 +103,8 @@ class PasswordResetView(APIView):
     def post(self, request):
         email = (request.data.get("email") or "").strip()
         record(None, "Requested password reset", detail=email, event_class="sensitive")
-        return Response(
-            {"toast": f"A reset link was sent to {email}. It expires in 30 minutes."}
-        )
+        return Response({"detail": "Contact your CEO or account administrator to reset your password. Email reset delivery is not configured."}, status=503)
+
 
 
 class MfaView(APIView):
@@ -193,10 +192,11 @@ class RoleViewSet(viewsets.ReadOnlyModelViewSet):
     permission_area = "user_admin"
 
 
-class PersonViewSet(viewsets.ModelViewSet):
-    queryset = Person.objects.all()
-    serializer_class = PersonSerializer
-    search_fields = ["name", "role_label", "department_label"]
+class PersonViewSet(viewsets.ReadOnlyModelViewSet):
+    from .serializers import EmployeeDirectorySerializer
+    queryset = User.objects.select_related("role", "department").all()
+    serializer_class = EmployeeDirectorySerializer
+    search_fields = ["display_name", "email", "employee_number"]
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -204,9 +204,9 @@ class PersonViewSet(viewsets.ModelViewSet):
             "title": "People",
             "subtitle": "Who is here, what they are responsible for, and how loaded they are.",
             "stats": [
-                {"label": "People", "value": "14", "note": "5 departments"},
-                {"label": "Average utilisation", "value": "92%", "note": "engineering at 128%"},
-                {"label": "Open roles", "value": "2", "note": "engineer, analyst"},
+                {"label": "People", "value": str(User.objects.count()), "note": f"{Department.objects.count()} departments"},
+                {"label": "Active accounts", "value": str(User.objects.filter(is_active=True).count()), "note": "Can sign in"},
+                {"label": "Department heads", "value": str(User.objects.filter(is_department_head=True).count()), "note": "Team coordination"},
             ],
             "cols": ["Person", "Role", "Department", "Projects", "Utilisation",
                      "Permissions", "State"],
@@ -219,15 +219,14 @@ class AccountAdminViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.select_related("role", "department")
     serializer_class = AccountAdminSerializer
-    permission_classes = viewsets.ModelViewSet.permission_classes + [HasAreaPermission]
+    permission_classes = viewsets.ModelViewSet.permission_classes + [IsDirector]
+    http_method_names = ["get", "post", "patch", "head", "options"]
     permission_area = "user_admin"
     write_level = "administer"
     search_fields = ["email", "display_name"]
 
     def perform_create(self, serializer):
-        user = serializer.save(state="invited")
-        user.set_unusable_password()
-        user.save()
+        user = serializer.save()
         record(self.request.user, "Created account", record_ref=user.email,
                event_class="sensitive")
 
@@ -260,9 +259,9 @@ class AccountAdminViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         role_slug = request.data.get("role")
         role = Role.objects.filter(slug=role_slug).first()
-        if role:
-            user.role = role
-            user.save(update_fields=["role"])
+        form = self.get_serializer(user, data={"role": str(role.pk) if role else None}, partial=True)
+        form.is_valid(raise_exception=True)
+        form.save()
         record(request.user, "Granted temporary access", record_ref=f"Role · {role_slug}",
                detail=request.data.get("detail", "Temporary grant"), event_class="sensitive")
         return Response(
