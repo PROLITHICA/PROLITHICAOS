@@ -1,6 +1,7 @@
 import { ThemeColorPipe } from '../../shared/ui/theme-color.pipe';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
+import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
@@ -67,7 +68,7 @@ interface ProfileUser extends User { password_changed_at?: string | null; employ
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ThemeColorPipe, FieldComponent, SkeletonComponent, EmptyStateComponent],
+  imports: [ThemeColorPipe, FieldComponent, SkeletonComponent, EmptyStateComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',
   styles: [`

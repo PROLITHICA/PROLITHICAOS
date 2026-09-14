@@ -24,8 +24,8 @@ Both halves, from the repository root:
 ./dev.sh
 ```
 
-It applies database migrations, starts the API on :8000 and serves the app on :4200 — bound to
-all interfaces, so it is reachable from any device on the same network. The script
+It applies migrations, ensures the eight-project catalogue is present, and on a fresh database
+securely prompts for a CEO email and password before serving the API on :8000 and the app on :4200. The script
 prints both addresses when it starts:
 
 ```
@@ -41,7 +41,8 @@ Or run the halves separately:
 ```bash
 # API
 backend_venv/bin/python backend/manage.py migrate
-backend_venv/bin/python backend/manage.py seed
+backend_venv/bin/python backend/manage.py setup_workspace
+backend_venv/bin/python backend/manage.py bootstrap_ceo
 backend_venv/bin/python backend/manage.py runserver 0.0.0.0:8000
 
 # App  (node lives in /opt/homebrew/bin on this machine)

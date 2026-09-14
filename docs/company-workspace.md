@@ -21,7 +21,7 @@ The existing local database has been migrated. On this machine a fresh Python ru
 PROLITHICA_PYTHON=/private/tmp/prolithica-os-runtime/bin/python ./dev.sh
 ```
 
-The temporary runtime can be recreated using the standard setup above. The app runs at http://localhost:4200 and proxies API requests to Django on port 8000. Startup no longer runs the demo seed, so it cannot reset CEO-managed passwords, account details or project names.
+The temporary runtime can be recreated using the standard setup above. The app runs at http://localhost:4200 and proxies API requests to Django on port 8000. Startup ensures missing catalogue entries exist and securely prompts for the first CEO account only when no CEO or superuser exists. It never runs the demo seed or overwrites passwords, account details, project edits or linked project records.
 
 ## Accounts and work
 
@@ -34,9 +34,9 @@ The temporary runtime can be recreated using the standard setup above. The app r
 
 ## Project catalogue
 
-`manage.py setup_workspace` is an explicit, idempotent setup command. It configured the eight requested project names, reusing the four existing demo project records and preserving their linked records. **Existing seeded financial amounts, task descriptions and progress remain demonstration data, not verified facts about these projects.** Newly added projects begin at Discovery with no invented delivery history. Do not rerun the demo seed against company-managed accounts.
+`manage.py setup_workspace` idempotently ensures all eight requested project names, reusing known starter project references and preserving linked records and later company edits. Startup runs this command automatically. **Existing seeded financial amounts, task descriptions and progress remain demonstration data, not verified facts about these projects.** Newly added projects begin at Discovery with no invented delivery history. Do not run the demo seed against company-managed accounts.
 
-For a fresh database, initialize the existing company accounts using the repository's documented seed workflow once, then run `setup_workspace`. For an operational deployment, create approved users and import verified data instead of relying on demo credentials.
+A fresh database bootstraps through `dev.sh`, which prompts for the initial CEO email and a validated password without putting the password in shell history or arguments. The prompt is skipped once a CEO or superuser exists.
 
 ## Checks
 

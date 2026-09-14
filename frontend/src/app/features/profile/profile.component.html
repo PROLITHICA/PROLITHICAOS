@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  <section class="workspace-card" style="margin-bottom:24px"><p class="eyebrow">{{profile()?.employee_number}} / CURRENT PROJECTS</p><h2>The work you are part of.</h2>@for(p of profile()?.projects || [];track p.id){<a class="workspace-row" [href]="'projects/'+p.ref"><strong>{{p.name}}</strong><span>{{p.stage}} · {{p.completion}}% ↗</span></a>}@empty{<p>No current project assignments. Your CEO or department head can add you to a project.</p>}</section>
+    <section class="workspace-card" style="margin-bottom:24px"><p class="eyebrow">{{profile()?.employee_number}} / CURRENT PROJECTS</p><h2>The work you are part of.</h2>@for(p of profile()?.projects || [];track p.id){<a class="workspace-row" [routerLink]="['/projects',p.ref]"><strong>{{p.name}}</strong><span>{{p.stage}} · {{p.completion}}% ↗</span></a>}@empty{<p>No current project assignments. Your CEO or department head can add you to a project.</p>}</section>
   <div class="tab-rail">
     @for (t of tabs; track t.k) {
       <button type="button" class="tab"

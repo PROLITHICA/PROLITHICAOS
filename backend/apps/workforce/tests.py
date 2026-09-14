@@ -84,3 +84,46 @@ class WorkspaceTests(TestCase):
         self.assertEqual(self.client.patch(path,{'name':'Updated team','members':[str(self.other.pk)]},format='json').status_code,200)
         self.login_as(self.employee);self.assertEqual(self.client.get(path).status_code,404)
         self.login_as(self.other);self.assertEqual(self.client.get(path).status_code,200)
+
+    def test_client_portal_accounts_cannot_open_employee_workspace_or_chat(self):
+        portal_role=Role.objects.create(slug='client_portal',label='Client portal',scope='own_records')
+        portal=User.objects.create_user('portal@example.com','Company-pass-123',display_name='Portal User',role=portal_role)
+        self.login_as(portal)
+        self.assertEqual(self.client.get('/api/workspace/').status_code,403)
+        self.assertEqual(self.client.get('/api/workspace/threads/').status_code,403)
+        self.assertEqual(self.client.post('/api/workspace/threads/',{'name':'Attempt','members':[str(self.employee.pk)]},format='json').status_code,403)
+
+    def test_project_setup_is_repeatable_and_keeps_company_edits(self):
+        from django.core.management import call_command
+        historical=Project.objects.create(ref='PRJ-041',name='LIMS',full_name='LIMS')
+        call_command('setup_workspace',verbosity=0)
+        historical.refresh_from_db()
+        self.assertEqual(historical.name,'LIMS (legislative information system)')
+        self.assertEqual(Project.objects.filter(name__in=[
+            'Bunema billing system','PBO Workflow','Expresscarpets','Kienyeji Hub',
+            'Goalhub','Partec internal system','LIMS (legislative information system)',
+            'Directorate of Committees system']).count(),8)
+        historical.name='Approved project title'
+        historical.stage='Delivery'
+        historical.save()
+        call_command('setup_workspace',verbosity=0)
+        historical.refresh_from_db()
+        self.assertEqual((historical.name,historical.stage),('Approved project title','Delivery'))
+
+    def test_fresh_install_bootstraps_one_secure_ceo_interactively(self):
+        from django.core.management import call_command
+        from io import StringIO
+        from unittest.mock import patch
+        from apps.workforce.management.commands import bootstrap_ceo
+        self.ceo.delete()
+        output=StringIO()
+        with patch('sys.stdin.isatty',return_value=True), patch('builtins.input',return_value='first-ceo@example.com'), patch.object(bootstrap_ceo,'getpass',side_effect=['Secure-first-company-pass-738','Secure-first-company-pass-738']):
+            call_command('bootstrap_ceo',stdout=output)
+        owner=User.objects.get(email='first-ceo@example.com')
+        self.assertTrue(owner.is_superuser)
+        self.assertTrue(owner.role.is_director)
+        self.assertTrue(owner.check_password('Secure-first-company-pass-738'))
+        self.assertRegex(owner.employee_number,r'^EN-P\d{3,}$')
+        with patch('builtins.input',side_effect=AssertionError('must not prompt again')):
+            call_command('bootstrap_ceo',stdout=output)
+        self.assertEqual(User.objects.filter(role__is_director=True).count(),1)

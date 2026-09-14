@@ -8,9 +8,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView as BaseAPIView
 from rest_framework.permissions import IsAuthenticated, BasePermission
 
+CLIENT_ROLE_SLUGS = ("client", "client_portal")
+
+
+def is_employee(user):
+    return not (user.role and user.role.slug in CLIENT_ROLE_SLUGS)
+
+
 class EmployeeOnly(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and not (request.user.role and request.user.role.slug == "client")
+        return request.user.is_authenticated and is_employee(request.user)
 
 class APIView(BaseAPIView):
     permission_classes = [IsAuthenticated, EmployeeOnly]
@@ -33,7 +40,7 @@ def projects(user):
 
 
 def staff(user):
-    qs = User.objects.filter(is_active=True).exclude(state="suspended").exclude(role__slug="client")
+    qs = User.objects.filter(is_active=True).exclude(state="suspended").exclude(role__slug__in=CLIENT_ROLE_SLUGS)
     return qs if ceo(user) else qs.filter(department_id=user.department_id) if user.is_department_head and user.department_id else qs.filter(pk=user.pk)
 
 
@@ -131,7 +138,7 @@ class ThreadForm(serializers.Serializer):
     direct = serializers.BooleanField(default=False)
     def validate(self, data):
         ids=set(data["members"]); ids.discard(self.context["request"].user.id)
-        if not ids or User.objects.filter(pk__in=ids, is_active=True).exclude(state="suspended").exclude(role__slug="client").count()!=len(ids):
+        if not ids or User.objects.filter(pk__in=ids, is_active=True).exclude(state="suspended").exclude(role__slug__in=CLIENT_ROLE_SLUGS).count()!=len(ids):
             raise serializers.ValidationError("Choose active employees.")
         if data["direct"] and len(ids)!=1: raise serializers.ValidationError("A private conversation has two participants.")
         if not data["direct"] and not data["name"].strip(): raise serializers.ValidationError("Give the group a name.")
@@ -147,7 +154,7 @@ class ThreadsView(APIView):
             if thread.direct_key is None:
                 members=list({u.pk:u for u in members+list(group_admins())}.values())
             rows.append({"id":thread.id,"name":thread.name if not thread.direct_key else ", ".join(u.display_name for u in members if u.pk!=request.user.pk),"direct":bool(thread.direct_key),"can_manage":bool(not thread.direct_key and ceo(request.user)),"members":[{"id":u.id,"name":u.display_name,"admin":bool(not thread.direct_key and ceo(u))} for u in members]})
-        directory=User.objects.filter(is_active=True).exclude(pk=request.user.pk).exclude(state="suspended").exclude(role__slug="client")
+        directory=User.objects.filter(is_active=True).exclude(pk=request.user.pk).exclude(state="suspended").exclude(role__slug__in=CLIENT_ROLE_SLUGS)
         return Response({"threads":rows,"people":list(directory.values("id","display_name","employee_number"))})
     def post(self, request):
         form=ThreadForm(data=request.data,context={"request":request}); form.is_valid(raise_exception=True)
