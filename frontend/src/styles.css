@@ -412,8 +412,9 @@ body .brand-wrap img,.login-page header img{filter:invert(1);mix-blend-mode:mult
 /* Content enters quietly, then yields as it moves back out of view. */
 [data-scroll-fade]{opacity:0;transform:translateY(14px);transition:opacity 420ms ease,transform 420ms ease}
 [data-scroll-fade].is-in-view{opacity:1;transform:translateY(0)}
-[data-scroll-typewriter]{clip-path:inset(0 calc((1 - var(--type-progress,1))*100%) 0 0);transition:clip-path 80ms linear;will-change:clip-path}
-@media(prefers-reduced-motion:reduce){[data-scroll-fade]{opacity:1;transform:none;transition:none}[data-scroll-typewriter]{clip-path:none;transition:none;will-change:auto}}
+[data-scroll-typewriter]{animation:heading-typewriter calc(var(--char-count,50)*22ms) steps(var(--char-count,50),end) both}
+@keyframes heading-typewriter{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@media(prefers-reduced-motion:reduce){[data-scroll-fade]{opacity:1;transform:none;transition:none}[data-scroll-typewriter]{animation:none;clip-path:none;transition:none;will-change:auto}}
 
 /* Open ring and three dots, with the directional arrow in the centre. */
 .arrow-circle{position:relative;background:none;color:inherit;isolation:isolate}
