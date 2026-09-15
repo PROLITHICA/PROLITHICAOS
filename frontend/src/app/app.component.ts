@@ -28,23 +28,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   private fadeObserver?: IntersectionObserver;
   private contentObserver?: MutationObserver;
-  private scrollFrame = 0;
-  private readonly motionTargets: HTMLElement[] = [];
-  private readonly onScroll = () => {
-    if (this.scrollFrame) return;
-    this.scrollFrame = requestAnimationFrame(() => {
-      this.scrollFrame = 0;
-      const viewport = window.innerHeight;
-      for (const heading of this.motionTargets) {
-        const rect = heading.getBoundingClientRect();
-        const start = viewport * 0.9;
-        const finish = viewport * 0.32;
-        const progress = Math.max(0, Math.min(1, (start - rect.top) / (rect.height + start - finish)));
-        heading.style.setProperty('--type-progress', progress.toFixed(3));
-      }
-    });
-  };
-
   ngAfterViewInit(): void {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -59,17 +42,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       if (records.some((record) => record.addedNodes.length)) this.enhanceMotion(document.body);
     });
     this.contentObserver.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener('scroll', this.onScroll, { passive: true });
-    window.addEventListener('resize', this.onScroll, { passive: true });
-    this.onScroll();
   }
 
   ngOnDestroy(): void {
     this.fadeObserver?.disconnect();
     this.contentObserver?.disconnect();
-    window.removeEventListener('scroll', this.onScroll);
-    window.removeEventListener('resize', this.onScroll);
-    if (this.scrollFrame) cancelAnimationFrame(this.scrollFrame);
   }
 
   private enhanceMotion(root: ParentNode): void {
@@ -84,7 +61,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       if (heading.hasAttribute('data-scroll-typewriter')) return;
       heading.setAttribute('data-scroll-typewriter', '');
       heading.style.setProperty('--char-count', String(Math.max(heading.textContent?.trim().length ?? 0, 1)));
-      this.motionTargets.push(heading);
     });
   }
 
